@@ -1,0 +1,158 @@
+================================================================================
+                    BRAND LANGUAGE GUIDELINES TEMPLATE
+              Fill out this template to customize your content
+================================================================================
+
+INSTRUCTIONS:
+- Fill out each section that applies to your brand
+- Delete sections that don't apply
+- Be as specific as possible - the AI uses this to match your voice
+- Save as .txt, .pdf, or .docx and upload when generating content
+
+================================================================================
+SECTION 1: BRAND VOICE & PERSONALITY
+================================================================================
+
+Our brand personality is:
+- [e.g., Professional, Approachable, Innovative, Trustworthy]
+- [e.g., Friendly, Expert, Authentic]
+- [e.g., Bold, Humble, Playful]
+
+Our tone of voice is:
+- [e.g., Conversational but professional]
+- [e.g., Educational without being condescending]
+- [e.g., Confident but not arrogant]
+
+We speak to our audience as if we are:
+- [e.g., A knowledgeable friend, A trusted advisor, An industry expert]
+
+================================================================================
+SECTION 2: LANGUAGE DO'S AND DON'TS
+================================================================================
+
+Words and phrases we USE:
+- [e.g., "Let's explore...", "Here's what we found..."]
+- [e.g., Industry-specific terms your audience knows]
+- [e.g., Action verbs like "discover", "unlock", "achieve"]
+
+Words and phrases we AVOID:
+- [e.g., "Synergy", "Leverage", "Pivot"]
+- [e.g., Overly technical jargon]
+- [e.g., Clickbait phrases like "You won't believe..."]
+
+Our brand uses:
+- [ ] First person plural (we, our, us)
+- [ ] First person singular (I, my, me)
+- [ ] Second person (you, your)
+- [ ] Third person (the company, [Brand Name])
+
+================================================================================
+SECTION 3: CONTENT FORMATTING PREFERENCES
+================================================================================
+
+General formatting:
+- Sentence length: [Short and punchy / Medium / Varied]
+- Paragraph length: [2-3 sentences / 3-5 sentences / Longer form]
+- Use of bullet points: [Frequently / Sometimes / Rarely]
+- Use of numbered lists: [Frequently / Sometimes / Rarely]
+
+Headlines and hooks:
+- Style: [Question-based / Statement / How-to / Data-driven]
+- Length: [Short (5-8 words) / Medium (8-12 words) / Longer]
+
+================================================================================
+SECTION 4: PLATFORM-SPECIFIC GUIDELINES
+================================================================================
+
+LINKEDIN:
+- Tone: [More professional / Same as general / More casual]
+- Post length: [Short (under 150 words) / Medium (150-250) / Long (250+)]
+- Hashtags: [Number, e.g., 3-5 per post]
+- Emojis: [None / Minimal (1-2) / Moderate (3-5) / Abundant]
+- Content themes: [Thought leadership, Industry news, Behind-the-scenes]
+
+INSTAGRAM:
+- Tone: [More casual / Same as general / More inspirational]
+- Caption length: [Short / Medium / Long with line breaks]
+- Hashtags: [Number, e.g., 8-15 per post]
+- Emojis: [Minimal / Moderate / Abundant]
+- Content themes: [Visual storytelling, Tips, Community engagement]
+
+TWITTER/X:
+- Tone: [More conversational / Same as general]
+- Thread style: [Educational / Storytelling / List-based]
+- Hashtags: [Number, e.g., 1-2 per tweet]
+- Emojis: [None / Minimal / Moderate]
+
+FACEBOOK:
+- Tone: [Community-focused / Educational / Conversational]
+- Post length: [Short / Medium / Long-form storytelling]
+- Engagement style: [Questions / Polls / Discussion starters]
+
+YOUTUBE (Shorts/Scripts):
+- Speaking style: [Fast-paced / Moderate / Relaxed]
+- Hook style: [Question / Surprising fact / Direct statement]
+- CTA preference: [Subscribe / Comment / Like / Visit website]
+
+NEWSLETTER (Substack/Email):
+- Tone: [Personal / Professional / Mix]
+- Structure: [Story-driven / Educational / Curated]
+- Length: [Short (500 words) / Medium (800-1200) / Long (1500+)]
+
+================================================================================
+SECTION 5: CALL-TO-ACTION PREFERENCES
+================================================================================
+
+Preferred CTAs:
+- [e.g., "Learn more at...", "Join the conversation..."]
+- [e.g., "What do you think?", "Share your experience..."]
+- [e.g., "Follow for more...", "Save this for later..."]
+
+CTAs we avoid:
+- [e.g., "Click here", "Buy now"]
+- [e.g., Aggressive sales language]
+
+================================================================================
+SECTION 6: VISUAL CONTENT GUIDELINES (for design briefs)
+================================================================================
+
+Brand colors:
+- Primary: [e.g., #3B82F6 Blue]
+- Secondary: [e.g., #1E293B Dark gray]
+- Accent: [e.g., #10B981 Green]
+
+Typography preferences:
+- Headlines: [e.g., Bold, sans-serif]
+- Body text: [e.g., Clean, readable]
+
+Image style:
+- [e.g., Professional photography, Minimalist illustrations]
+- [e.g., Bright and colorful, Muted and sophisticated]
+
+================================================================================
+SECTION 7: ADDITIONAL NOTES
+================================================================================
+
+Competitor brands to differentiate from:
+- [List competitors and how your voice differs]
+
+Industry terms to always use correctly:
+- [List specific terminology and proper usage]
+
+Sensitive topics to handle carefully:
+- [Any topics requiring special consideration]
+
+Seasonal or timely considerations:
+- [Any regular themes or campaigns]
+
+================================================================================
+                              END OF TEMPLATE
+================================================================================
+
+After filling out this template:
+1. Save the file as .txt, .pdf, or .docx
+2. Return to the Content Repurposing Agent
+3. Upload your file in the "Brand Language Guidelines" section
+4. Generate your customized content package!
+
+Questions? Visit: https://github.com/hatimjohar/content-repurposing-agent
