@@ -1,446 +1,284 @@
 import { generateWithGroq } from './groqClient';
 
+// Generate all content in a SINGLE API call to fit within Vercel's timeout
 export async function extractMainIdeas(blogContent) {
-  const systemPrompt = `You are a content strategist. Extract 6-8 distinct main ideas from the blog article.
+  const systemPrompt = `You are a content strategist. Extract 4 distinct main ideas from the blog article.
 
-Each idea should be:
-- Unique and self-contained
-- Substantive enough to build content around
-- Different from the others (no overlap)
+Each idea should be unique and substantive enough to build content around.
 
-Return ONLY a JSON array of objects with this structure:
-[
-  {"id": 1, "title": "Main idea title", "description": "2-3 sentence description"},
-  ...
-]`;
+Return ONLY a JSON array:
+[{"id": 1, "title": "Main idea title", "description": "2-3 sentence description"}, ...]`;
 
-  const userPrompt = `Extract 6-8 main ideas from this blog article:
+  const userPrompt = `Extract 4 main ideas from this blog:
 
 Title: ${blogContent.title}
 
 Content:
-${blogContent.content.substring(0, 6000)}
+${blogContent.content.substring(0, 4000)}
 
-Return ONLY the JSON array, no other text.`;
-
-  const response = await generateWithGroq(systemPrompt, userPrompt, 1500);
-
-  // Clean response (remove markdown code blocks if present)
-  const cleaned = response.replace(/```json|```/g, '').trim();
+Return ONLY the JSON array.`;
 
   try {
+    const response = await generateWithGroq(systemPrompt, userPrompt, 800);
+    const cleaned = response.replace(/```json|```/g, '').trim();
     const mainIdeas = JSON.parse(cleaned);
-    return mainIdeas.slice(0, 8);
+    return mainIdeas.slice(0, 4);
   } catch (_e) {
-    // Fallback: create default ideas from content
     console.error('Failed to parse main ideas, using fallback');
     return [
       { id: 1, title: "Key Insight", description: "Main takeaway from the article" },
       { id: 2, title: "Practical Application", description: "How to apply the concepts" },
-      { id: 3, title: "Industry Impact", description: "Broader implications for the field" },
-      { id: 4, title: "Best Practices", description: "Recommended approaches" },
-      { id: 5, title: "Common Challenges", description: "Problems addressed in the article" },
-      { id: 6, title: "Future Trends", description: "Where things are heading" }
+      { id: 3, title: "Industry Impact", description: "Broader implications" },
+      { id: 4, title: "Best Practices", description: "Recommended approaches" }
     ];
   }
 }
 
+// Generate ALL platform content in a single comprehensive API call
 export async function generateAllContent(blogContent, brandGuidelines, mainIdeas) {
-  const brandContext = JSON.stringify(brandGuidelines, null, 2);
+  const brandContext = brandGuidelines?.voice || 'Professional, engaging, clear';
+  const ideasText = mainIdeas.map(i => `${i.id}. ${i.title}: ${i.description}`).join('\n');
 
-  // Generate content for each platform
-  const [linkedin, instagram, twitter, facebook, infographic, linkedinPulse, substack, youtubeShorts] = await Promise.all([
-    generateLinkedInPosts(mainIdeas, brandContext),
-    generateInstagramPosts(mainIdeas, brandContext),
-    generateTwitterThreads(mainIdeas, brandContext),
-    generateFacebookPosts(mainIdeas, brandContext),
-    generateInfographic(mainIdeas, brandContext),
-    generateLinkedInPulse(mainIdeas, brandContext, blogContent),
-    generateSubstack(mainIdeas, brandContext, blogContent),
-    generateYouTubeShorts(mainIdeas, brandContext)
-  ]);
+  const systemPrompt = `You are an expert social media content creator. Generate comprehensive multi-platform content.
+Brand voice: ${brandContext}
+Always return valid JSON with the exact structure requested.`;
 
-  return {
-    linkedin,
-    instagram,
-    twitter,
-    facebook,
-    infographic,
-    linkedinPulse,
-    substack,
-    youtubeShorts
-  };
-}
+  const userPrompt = `Based on this blog article, create a complete content package.
 
-async function generateLinkedInPosts(mainIdeas, brandContext) {
-  const posts = [];
-  const formats = [
-    'storytelling case study',
-    'data-driven analysis',
-    'thought-provoking question',
-    'actionable listicle',
-    'contrarian perspective'
-  ];
+BLOG TITLE: ${blogContent.title}
+MAIN IDEAS:
+${ideasText}
 
-  const systemPrompt = `You are a LinkedIn content expert. Create engaging, professional posts that drive engagement.
-Follow these brand guidelines: ${brandContext}
-Keep posts between 120-200 words. Use line breaks for readability. Include relevant hashtags.`;
+BLOG EXCERPT:
+${blogContent.content.substring(0, 3000)}
 
-  for (let i = 0; i < 5; i++) {
-    const idea = mainIdeas[i % mainIdeas.length];
-    const prompt = `Create a LinkedIn post using this main idea: "${idea.title} - ${idea.description}"
+Generate content for ALL platforms below. Return ONLY a JSON object with this EXACT structure:
 
-Format: ${formats[i]}
-Length: 120-200 words
-Style: Professional, thought leadership
-
-Structure:
-- Hook opening line
-- Main content (2-3 paragraphs)
-- Call to action
-- 3-5 relevant hashtags
-
-Return ONLY the post text, no preamble or explanation.`;
-
-    try {
-      const post = await generateWithGroq(systemPrompt, prompt, 500);
-      posts.push({
-        format: formats[i],
-        mainIdeaId: idea.id,
-        content: post.trim(),
-        wordCount: post.split(/\s+/).length,
-        platform: 'LinkedIn'
-      });
-    } catch (_error) {
-      posts.push({
-        format: formats[i],
-        mainIdeaId: idea.id,
-        content: `[Content generation in progress - ${formats[i]}]`,
-        wordCount: 0,
-        platform: 'LinkedIn'
-      });
-    }
+{
+  "linkedin": [
+    {"format": "storytelling", "content": "Full LinkedIn post 150-200 words with hashtags"},
+    {"format": "listicle", "content": "Full LinkedIn post 150-200 words with hashtags"},
+    {"format": "thought-leadership", "content": "Full LinkedIn post 150-200 words with hashtags"}
+  ],
+  "instagram": [
+    {"style": "inspirational", "caption": "Instagram caption 80-100 words with emojis and 10 hashtags", "visualConcept": "Describe the image/graphic"}
+  ],
+  "twitter": [
+    {"style": "thread", "tweets": ["Tweet 1 hook under 280 chars", "Tweet 2 under 280 chars", "Tweet 3 under 280 chars", "Tweet 4 CTA under 280 chars"]}
+  ],
+  "facebook": [
+    {"style": "educational", "content": "Facebook post 150-200 words, conversational, ends with question"},
+    {"style": "relatable", "content": "Facebook post 100-150 words, personal tone"}
+  ],
+  "infographic": {
+    "title": "Compelling infographic title",
+    "dataPoints": ["Point 1", "Point 2", "Point 3", "Point 4", "Point 5"],
+    "colorPalette": {"primary": "#3B82F6", "secondary": "#1E293B", "accent": "#10B981"}
+  },
+  "linkedinPulse": {
+    "headline": "Article headline 60-80 chars",
+    "content": "Full 400-600 word article with sections marked by ## headings"
+  },
+  "substack": {
+    "subject": "Email subject line",
+    "content": "Full 400-600 word newsletter, personal tone, storytelling"
+  },
+  "youtubeShorts": {
+    "segments": [
+      {"time": "0-3s", "script": "Hook line", "visual": "Visual description"},
+      {"time": "3-20s", "script": "Main point script", "visual": "Visual description"},
+      {"time": "20-30s", "script": "CTA script", "visual": "Visual description"}
+    ]
   }
-
-  return posts;
 }
 
-async function generateInstagramPosts(mainIdeas, brandContext) {
-  const posts = [];
-  const styles = ['Visual storytelling, emotional', 'Inspirational, aspirational'];
+IMPORTANT: Return ONLY the JSON object, no other text. Ensure all content is complete and high-quality.`;
 
-  const systemPrompt = `You are an Instagram content expert. Create engaging captions that complement visuals.
-Follow these brand guidelines: ${brandContext}
-Keep captions engaging with emojis and clear CTAs.`;
+  try {
+    const response = await generateWithGroq(systemPrompt, userPrompt, 4000);
+    const cleaned = response.replace(/```json|```/g, '').trim();
 
-  for (let i = 0; i < 2; i++) {
-    const idea = mainIdeas[(i + 5) % mainIdeas.length];
-    const prompt = `Create an Instagram post using this main idea: "${idea.title} - ${idea.description}"
+    // Find the JSON object in the response
+    const jsonStart = cleaned.indexOf('{');
+    const jsonEnd = cleaned.lastIndexOf('}') + 1;
+    const jsonStr = cleaned.substring(jsonStart, jsonEnd);
 
-Style: ${styles[i]}
-Length: ${i === 0 ? '100-125' : '80-100'} words
-Include: Hook + 2-3 sentences + CTA + 8-15 hashtags
+    const content = JSON.parse(jsonStr);
 
-Also create a design brief with:
-- Visual concept (describe the image/graphic)
-- Color palette (3-4 colors with descriptions)
-- Typography notes
-- Layout suggestions
-- Stock photo keywords
-
-Return as JSON: {"caption": "...", "designBrief": {"visualConcept": "...", "colorPalette": [...], "typography": "...", "layout": "...", "stockPhotoKeywords": [...]}}`;
-
-    try {
-      const response = await generateWithGroq(systemPrompt, prompt, 800);
-      const cleaned = response.replace(/```json|```/g, '').trim();
-      const parsed = JSON.parse(cleaned);
-
-      posts.push({
-        mainIdeaId: idea.id,
-        style: styles[i],
-        caption: parsed.caption,
-        designBrief: parsed.designBrief,
-        platform: 'Instagram'
-      });
-    } catch (_error) {
-      posts.push({
-        mainIdeaId: idea.id,
-        style: styles[i],
-        caption: `[Instagram caption for: ${idea.title}]`,
+    // Transform to expected format
+    return {
+      linkedin: (content.linkedin || []).map((post, i) => ({
+        format: post.format || `post-${i+1}`,
+        mainIdeaId: mainIdeas[i % mainIdeas.length]?.id || 1,
+        content: post.content || '',
+        wordCount: (post.content || '').split(/\s+/).length,
+        platform: 'LinkedIn'
+      })),
+      instagram: (content.instagram || []).map((post, i) => ({
+        mainIdeaId: mainIdeas[i % mainIdeas.length]?.id || 1,
+        style: post.style || 'inspirational',
+        caption: post.caption || '',
         designBrief: {
-          visualConcept: 'Modern, clean design with bold typography',
+          visualConcept: post.visualConcept || 'Modern, clean design',
           colorPalette: ['#3B82F6', '#1E293B', '#F8FAFC'],
           typography: 'Sans-serif, bold headlines',
-          layout: 'Centered text with gradient background',
+          layout: 'Centered composition',
           stockPhotoKeywords: ['business', 'technology', 'success']
         },
         platform: 'Instagram'
-      });
-    }
-  }
-
-  return posts;
-}
-
-async function generateTwitterThreads(mainIdeas, brandContext) {
-  const threads = [];
-  const styles = ['how-to educational', 'insight analysis', 'narrative story'];
-  const tweetCounts = [6, 7, 5];
-
-  const systemPrompt = `You are a Twitter/X content expert. Create engaging threads that provide value.
-Follow these brand guidelines: ${brandContext}
-Each tweet must be under 280 characters. Make threads cohesive but each tweet should stand alone.`;
-
-  for (let i = 0; i < 3; i++) {
-    const idea = mainIdeas[i % mainIdeas.length];
-    const prompt = `Create a Twitter thread using this main idea: "${idea.title} - ${idea.description}"
-
-Style: ${styles[i]}
-Length: ${tweetCounts[i]} tweets
-Each tweet: Max 280 characters
-
-Structure:
-- Tweet 1: Hook (grab attention)
-- Tweets 2-N: Main content
-- Final tweet: CTA/summary
-
-Return as JSON array: [{"tweetNumber": 1, "text": "..."}, ...]`;
-
-    try {
-      const response = await generateWithGroq(systemPrompt, prompt, 1000);
-      const cleaned = response.replace(/```json|```/g, '').trim();
-      const tweets = JSON.parse(cleaned);
-
-      threads.push({
-        style: styles[i],
-        mainIdeaId: idea.id,
-        tweets,
+      })),
+      twitter: (content.twitter || []).map((thread, i) => ({
+        style: thread.style || 'thread',
+        mainIdeaId: mainIdeas[i % mainIdeas.length]?.id || 1,
+        tweets: (thread.tweets || []).map((text, j) => ({ tweetNumber: j + 1, text })),
         platform: 'Twitter/X'
-      });
-    } catch (_error) {
-      threads.push({
-        style: styles[i],
-        mainIdeaId: idea.id,
-        tweets: [
-          { tweetNumber: 1, text: `Thread: ${idea.title}` },
-          { tweetNumber: 2, text: idea.description }
-        ],
-        platform: 'Twitter/X'
-      });
-    }
+      })),
+      facebook: (content.facebook || []).map((post, i) => ({
+        style: post.style || 'educational',
+        mainIdeaId: mainIdeas[i % mainIdeas.length]?.id || 1,
+        content: post.content || '',
+        platform: 'Facebook'
+      })),
+      infographic: content.infographic ? {
+        title: content.infographic.title || blogContent.title,
+        subtitle: mainIdeas[0]?.description || '',
+        dataPoints: (content.infographic.dataPoints || []).map((point, i) => ({
+          point: typeof point === 'string' ? point : point.point || `Point ${i+1}`,
+          description: typeof point === 'string' ? '' : point.description || '',
+          emphasis: i === 0 ? 'high' : 'medium'
+        })),
+        visualHierarchy: 'Top-to-bottom flow',
+        colorPalette: content.infographic.colorPalette || {
+          primary: '#3B82F6',
+          secondary: '#1E293B',
+          accent: '#10B981',
+          background: '#F8FAFC'
+        },
+        iconStyle: 'Modern flat icons',
+        dimensions: '1080x1350px'
+      } : getDefaultInfographic(blogContent, mainIdeas),
+      linkedinPulse: content.linkedinPulse ? {
+        mainIdeaId: mainIdeas[0]?.id || 1,
+        content: `# ${content.linkedinPulse.headline || blogContent.title}\n\n${content.linkedinPulse.content || ''}`,
+        wordCount: (content.linkedinPulse.content || '').split(/\s+/).length,
+        platform: 'LinkedIn Pulse'
+      } : getDefaultLinkedInPulse(blogContent, mainIdeas),
+      substack: content.substack ? {
+        mainIdeaId: mainIdeas[1]?.id || mainIdeas[0]?.id || 1,
+        content: `Subject: ${content.substack.subject || blogContent.title}\n\n${content.substack.content || ''}`,
+        wordCount: (content.substack.content || '').split(/\s+/).length,
+        platform: 'Substack'
+      } : getDefaultSubstack(blogContent, mainIdeas),
+      youtubeShorts: content.youtubeShorts ? {
+        mainIdeaId: mainIdeas[2]?.id || mainIdeas[0]?.id || 1,
+        segments: (content.youtubeShorts.segments || []).map(seg => ({
+          time: seg.time || '0-10s',
+          spokenText: seg.script || '',
+          onScreenText: seg.script?.substring(0, 50) || '',
+          visualCue: seg.visual || 'Visual demonstration'
+        })),
+        platform: 'YouTube Shorts'
+      } : getDefaultYouTubeShorts(mainIdeas)
+    };
+  } catch (error) {
+    console.error('Content generation error:', error);
+    // Return fallback content
+    return getDefaultContent(blogContent, mainIdeas);
   }
-
-  return threads;
 }
 
-async function generateFacebookPosts(mainIdeas, brandContext) {
-  const posts = [];
-  const styles = ['educational long-form', 'conversational relatable', 'question poll', 'personal authentic'];
-  const lengths = ['200-250', '150-180', '100-130', '180-220'];
-
-  const systemPrompt = `You are a Facebook content expert. Create community-focused, engaging posts.
-Follow these brand guidelines: ${brandContext}
-Focus on sparking conversation and building community.`;
-
-  for (let i = 0; i < 4; i++) {
-    const idea = mainIdeas[(i + 1) % mainIdeas.length];
-    const prompt = `Create a Facebook post using this main idea: "${idea.title} - ${idea.description}"
-
-Style: ${styles[i]}
-Length: ${lengths[i]} words
-Tone: Community-focused, engaging
-
-Include a conversation starter or question at the end.
-Return ONLY the post text.`;
-
-    try {
-      const post = await generateWithGroq(systemPrompt, prompt, 600);
-      posts.push({
-        style: styles[i],
-        mainIdeaId: idea.id,
-        content: post.trim(),
-        platform: 'Facebook'
-      });
-    } catch (_error) {
-      posts.push({
-        style: styles[i],
-        mainIdeaId: idea.id,
-        content: `[Facebook post for: ${idea.title}]`,
-        platform: 'Facebook'
-      });
-    }
-  }
-
-  return posts;
+function getDefaultInfographic(blogContent, mainIdeas) {
+  return {
+    title: blogContent.title,
+    subtitle: mainIdeas[0]?.description || 'Key insights from the article',
+    dataPoints: mainIdeas.map((idea, i) => ({
+      point: idea.title,
+      description: idea.description,
+      emphasis: i === 0 ? 'high' : 'medium'
+    })),
+    visualHierarchy: 'Top-to-bottom flow with clear sections',
+    colorPalette: {
+      primary: '#3B82F6',
+      secondary: '#1E293B',
+      accent: '#10B981',
+      background: '#F8FAFC'
+    },
+    iconStyle: 'Modern flat icons with subtle shadows',
+    dimensions: '1080x1350px'
+  };
 }
 
-async function generateInfographic(mainIdeas, brandContext) {
-  const idea = mainIdeas[0];
-  const systemPrompt = `You are an infographic design expert. Create detailed infographic outlines.
-Follow these brand guidelines: ${brandContext}`;
+function getDefaultLinkedInPulse(blogContent, mainIdeas) {
+  return {
+    mainIdeaId: mainIdeas[0]?.id || 1,
+    content: `# ${blogContent.title}\n\n${mainIdeas.map(i => `## ${i.title}\n${i.description}`).join('\n\n')}`,
+    wordCount: 100,
+    platform: 'LinkedIn Pulse'
+  };
+}
 
-  const prompt = `Create an infographic outline using this main idea: "${idea.title} - ${idea.description}"
+function getDefaultSubstack(blogContent, mainIdeas) {
+  return {
+    mainIdeaId: mainIdeas[1]?.id || 1,
+    content: `Subject: Insights from "${blogContent.title}"\n\n${mainIdeas.map(i => `**${i.title}**\n${i.description}`).join('\n\n')}`,
+    wordCount: 100,
+    platform: 'Substack'
+  };
+}
 
-Include:
-1. Compelling title (benefit-driven)
-2. 5-7 data points with descriptions
-3. Visual hierarchy notes
-4. Color palette (4 colors with hex codes)
-5. Icon/illustration style recommendations
-6. Dimensions: 1080x1350px (Instagram format)
+function getDefaultYouTubeShorts(mainIdeas) {
+  return {
+    mainIdeaId: mainIdeas[0]?.id || 1,
+    segments: [
+      { time: '0-3s', spokenText: 'Hook', onScreenText: mainIdeas[0]?.title || 'Key Insight', visualCue: 'Bold text animation' },
+      { time: '3-25s', spokenText: mainIdeas[0]?.description || 'Main content', onScreenText: 'Key points', visualCue: 'Visual demonstration' },
+      { time: '25-30s', spokenText: 'Follow for more!', onScreenText: 'Follow', visualCue: 'CTA animation' }
+    ],
+    platform: 'YouTube Shorts'
+  };
+}
 
-Return as JSON:
-{
-  "title": "...",
-  "subtitle": "...",
-  "dataPoints": [{"point": "...", "description": "...", "emphasis": "high/medium/low"}],
-  "visualHierarchy": "...",
-  "colorPalette": {"primary": "#...", "secondary": "#...", "accent": "#...", "background": "#..."},
-  "iconStyle": "...",
-  "dimensions": "1080x1350px"
-}`;
-
-  try {
-    const response = await generateWithGroq(systemPrompt, prompt, 1200);
-    const cleaned = response.replace(/```json|```/g, '').trim();
-    return JSON.parse(cleaned);
-  } catch (_error) {
-    return {
-      title: idea.title,
-      subtitle: idea.description,
-      dataPoints: [
-        { point: "Key Statistic 1", description: "Description", emphasis: "high" },
-        { point: "Key Statistic 2", description: "Description", emphasis: "medium" },
-        { point: "Key Statistic 3", description: "Description", emphasis: "medium" }
-      ],
-      visualHierarchy: "Top-to-bottom flow with clear sections",
-      colorPalette: {
-        primary: "#3B82F6",
-        secondary: "#1E293B",
-        accent: "#10B981",
-        background: "#F8FAFC"
+function getDefaultContent(blogContent, mainIdeas) {
+  return {
+    linkedin: mainIdeas.slice(0, 3).map((idea, i) => ({
+      format: ['storytelling', 'listicle', 'thought-leadership'][i],
+      mainIdeaId: idea.id,
+      content: `${idea.title}\n\n${idea.description}\n\n#business #insights #professional`,
+      wordCount: 50,
+      platform: 'LinkedIn'
+    })),
+    instagram: [{
+      mainIdeaId: mainIdeas[0]?.id || 1,
+      style: 'inspirational',
+      caption: `✨ ${mainIdeas[0]?.title || 'Key Insight'}\n\n${mainIdeas[0]?.description || ''}\n\n#business #growth #success #motivation #tips`,
+      designBrief: {
+        visualConcept: 'Modern, clean design with bold typography',
+        colorPalette: ['#3B82F6', '#1E293B', '#F8FAFC'],
+        typography: 'Sans-serif, bold headlines',
+        layout: 'Centered text with gradient background',
+        stockPhotoKeywords: ['business', 'technology', 'success']
       },
-      iconStyle: "Modern flat icons with subtle shadows",
-      dimensions: "1080x1350px"
-    };
-  }
-}
-
-async function generateLinkedInPulse(mainIdeas, brandContext, blogContent) {
-  const idea = mainIdeas[0];
-  const systemPrompt = `You are a thought leadership content expert. Create authoritative, comprehensive articles.
-Follow these brand guidelines: ${brandContext}`;
-
-  const prompt = `Create a LinkedIn Pulse article using this main idea: "${idea.title} - ${idea.description}"
-
-Source context: ${blogContent.content.substring(0, 2000)}
-
-Structure:
-- Compelling headline (60-100 chars)
-- Hook opening paragraph
-- 3-4 main sections with subheadings (use ## for headings)
-- Examples and insights throughout
-- Strong conclusion with actionable CTA
-
-Length: 800-1200 words
-Tone: Authoritative, thought leadership
-
-Return ONLY the article text with clear section headers.`;
-
-  try {
-    const article = await generateWithGroq(systemPrompt, prompt, 2500);
-    return {
-      mainIdeaId: idea.id,
-      content: article.trim(),
-      wordCount: article.split(/\s+/).length,
-      platform: 'LinkedIn Pulse'
-    };
-  } catch (_error) {
-    return {
-      mainIdeaId: idea.id,
-      content: `[LinkedIn Pulse article for: ${idea.title}]`,
-      wordCount: 0,
-      platform: 'LinkedIn Pulse'
-    };
-  }
-}
-
-async function generateSubstack(mainIdeas, brandContext, blogContent) {
-  const idea = mainIdeas[1] || mainIdeas[0];
-  const systemPrompt = `You are a newsletter content expert. Create personal, engaging newsletters.
-Follow these brand guidelines: ${brandContext}`;
-
-  const prompt = `Create a Substack newsletter post using this main idea: "${idea.title} - ${idea.description}"
-
-Source context: ${blogContent.content.substring(0, 2000)}
-
-Structure:
-- Subject line (start with "Subject: ")
-- Personal, engaging opening
-- Story-driven body (mix personal insights + information)
-- Practical takeaways section
-- Community CTA (encourage replies/discussion)
-
-Length: 1000-1500 words
-Tone: Personal, storytelling, accessible
-
-Return the newsletter with subject line at the top.`;
-
-  try {
-    const newsletter = await generateWithGroq(systemPrompt, prompt, 2800);
-    return {
-      mainIdeaId: idea.id,
-      content: newsletter.trim(),
-      wordCount: newsletter.split(/\s+/).length,
-      platform: 'Substack'
-    };
-  } catch (_error) {
-    return {
-      mainIdeaId: idea.id,
-      content: `[Substack newsletter for: ${idea.title}]`,
-      wordCount: 0,
-      platform: 'Substack'
-    };
-  }
-}
-
-async function generateYouTubeShorts(mainIdeas, brandContext) {
-  const idea = mainIdeas[2] || mainIdeas[0];
-  const systemPrompt = `You are a short-form video script expert. Create punchy, engaging scripts.
-Follow these brand guidelines: ${brandContext}`;
-
-  const prompt = `Create a YouTube Shorts script (60 seconds) using this main idea: "${idea.title} - ${idea.description}"
-
-Structure with timing:
-[0-3s] Hook (pattern interrupt, grab attention)
-[3-15s] Context/problem setup
-[15-45s] Main content (tip/insight/solution)
-[45-55s] Quick summary
-[55-60s] CTA (like/follow)
-
-Include for each segment:
-- Spoken text
-- On-screen text suggestions
-- Visual cues (b-roll, graphics)
-
-Return as JSON: {"segments": [{"time": "0-3s", "spokenText": "...", "onScreenText": "...", "visualCue": "..."}]}`;
-
-  try {
-    const response = await generateWithGroq(systemPrompt, prompt, 1000);
-    const cleaned = response.replace(/```json|```/g, '').trim();
-    return {
-      mainIdeaId: idea.id,
-      ...JSON.parse(cleaned),
-      platform: 'YouTube Shorts'
-    };
-  } catch (_error) {
-    return {
-      mainIdeaId: idea.id,
-      segments: [
-        { time: "0-3s", spokenText: "Hook", onScreenText: idea.title, visualCue: "Bold text animation" },
-        { time: "3-60s", spokenText: idea.description, onScreenText: "Key points", visualCue: "Visual demonstration" }
+      platform: 'Instagram'
+    }],
+    twitter: [{
+      style: 'thread',
+      mainIdeaId: mainIdeas[0]?.id || 1,
+      tweets: [
+        { tweetNumber: 1, text: `🧵 ${mainIdeas[0]?.title || 'Thread'}` },
+        { tweetNumber: 2, text: mainIdeas[0]?.description?.substring(0, 270) || 'Key insight' },
+        { tweetNumber: 3, text: 'Follow for more insights! 🚀' }
       ],
-      platform: 'YouTube Shorts'
-    };
-  }
+      platform: 'Twitter/X'
+    }],
+    facebook: mainIdeas.slice(0, 2).map((idea, i) => ({
+      style: ['educational', 'relatable'][i],
+      mainIdeaId: idea.id,
+      content: `${idea.title}\n\n${idea.description}\n\nWhat do you think? Share your thoughts below! 👇`,
+      platform: 'Facebook'
+    })),
+    infographic: getDefaultInfographic(blogContent, mainIdeas),
+    linkedinPulse: getDefaultLinkedInPulse(blogContent, mainIdeas),
+    substack: getDefaultSubstack(blogContent, mainIdeas),
+    youtubeShorts: getDefaultYouTubeShorts(mainIdeas)
+  };
 }
