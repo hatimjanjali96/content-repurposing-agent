@@ -16,19 +16,13 @@ export async function POST(request) {
       return NextResponse.json({ success: false, error: 'Groq API key not configured' }, { status: 500 });
     }
 
-    const prompt = `Create social media content based on this blog:
+    const prompt = `Create social media content for this blog article.
 
 TITLE: ${title || 'Article'}
-CONTENT: ${content.substring(0, 2500)}
+SUMMARY: ${content.substring(0, 1500)}
 
-Return JSON with this EXACT structure (no extra text):
-{
-  "linkedin": [{"format":"insight","content":"LinkedIn post 150 words with hashtags"}],
-  "instagram": [{"style":"visual","caption":"Instagram caption 80 words with emojis and hashtags","visualConcept":"image description"}],
-  "twitter": [{"style":"thread","tweets":["Tweet 1","Tweet 2","Tweet 3"]}],
-  "facebook": [{"style":"engaging","content":"Facebook post 100 words ending with question"}],
-  "article": {"headline":"Headline","summary":"200 word summary"}
-}`;
+Return ONLY this JSON (no markdown, no explanation):
+{"linkedin":"LinkedIn post with hashtags","instagram":"Instagram caption with emojis","twitter":["Tweet 1","Tweet 2","Tweet 3"],"facebook":"Facebook post with question","summary":"Brief article summary"}`;
 
     const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -58,22 +52,38 @@ Return JSON with this EXACT structure (no extra text):
     const groqData = await groqResponse.json();
     const aiContent = groqData.choices?.[0]?.message?.content || '';
 
-    // Parse the JSON response
-    const cleaned = aiContent.replace(/```json|```/g, '').trim();
-    const jsonStart = cleaned.indexOf('{');
-    const jsonEnd = cleaned.lastIndexOf('}') + 1;
+    // Parse the JSON response with robust error handling
+    let parsedContent;
+    try {
+      const cleaned = aiContent.replace(/```json|```/g, '').trim();
+      const jsonStart = cleaned.indexOf('{');
+      const jsonEnd = cleaned.lastIndexOf('}') + 1;
 
-    if (jsonStart === -1 || jsonEnd === 0) {
-      // Return fallback content
+      if (jsonStart === -1 || jsonEnd === 0) {
+        throw new Error('No JSON found');
+      }
+
+      let jsonStr = cleaned.substring(jsonStart, jsonEnd);
+
+      // Fix common JSON issues from LLMs
+      jsonStr = jsonStr
+        .replace(/,\s*}/g, '}')  // Remove trailing commas before }
+        .replace(/,\s*]/g, ']')  // Remove trailing commas before ]
+        .replace(/[\x00-\x1F\x7F]/g, ' ') // Remove control characters
+        .replace(/\n/g, ' ')     // Replace newlines with spaces in strings
+        .replace(/\t/g, ' ');    // Replace tabs with spaces
+
+      parsedContent = JSON.parse(jsonStr);
+    } catch (parseError) {
+      console.error('JSON parse error, using fallback:', parseError.message);
+      // Return fallback content if JSON parsing fails
       return NextResponse.json({
         success: true,
         data: getFallbackContent(title)
       });
     }
 
-    const parsedContent = JSON.parse(cleaned.substring(jsonStart, jsonEnd));
-
-    // Build the full response
+    // Build the full response from simplified format
     const mainIdeas = [
       { id: 1, title: "Core Message", description: `Main insight from: ${title}` },
       { id: 2, title: "Key Takeaway", description: "Practical application" },
@@ -81,39 +91,46 @@ Return JSON with this EXACT structure (no extra text):
       { id: 4, title: "Action Steps", description: "Implementation guide" }
     ];
 
+    // Handle both string and array formats
+    const linkedinContent = typeof parsedContent.linkedin === 'string' ? parsedContent.linkedin : '';
+    const instagramContent = typeof parsedContent.instagram === 'string' ? parsedContent.instagram : '';
+    const twitterTweets = Array.isArray(parsedContent.twitter) ? parsedContent.twitter : ['Tweet 1', 'Tweet 2', 'Tweet 3'];
+    const facebookContent = typeof parsedContent.facebook === 'string' ? parsedContent.facebook : '';
+    const summaryContent = typeof parsedContent.summary === 'string' ? parsedContent.summary : '';
+
     const fullContent = {
-      linkedin: (parsedContent.linkedin || []).map(post => ({
-        format: post.format || 'insight',
+      linkedin: [{
+        format: 'insight',
         mainIdeaId: 1,
-        content: post.content || '',
-        wordCount: (post.content || '').split(/\s+/).length,
+        content: linkedinContent,
+        wordCount: linkedinContent.split(/\s+/).length,
         platform: 'LinkedIn'
-      })),
-      instagram: (parsedContent.instagram || []).map(post => ({
+      }],
+      instagram: [{
         mainIdeaId: 1,
-        style: post.style || 'visual',
-        caption: post.caption || '',
+        style: 'visual',
+        caption: instagramContent,
         designBrief: {
-          visualConcept: post.visualConcept || 'Modern design',
+          visualConcept: 'Modern design',
           colorPalette: ['#3B82F6', '#1E293B', '#F8FAFC'],
           typography: 'Sans-serif, bold',
           layout: 'Centered',
           stockPhotoKeywords: ['business', 'technology']
         },
         platform: 'Instagram'
-      })),
-      twitter: (parsedContent.twitter || []).map(thread => ({
-        style: thread.style || 'thread',
+      }],
+      twitter: [{
+        style: 'thread',
         mainIdeaId: 1,
-        tweets: (thread.tweets || []).map((text, j) => ({ tweetNumber: j + 1, text })),
+        tweets: twitterTweets.map((text, j) => ({ tweetNumber: j + 1, text: String(text) })),
         platform: 'Twitter/X'
-      })),
-      facebook: (parsedContent.facebook || []).map(post => ({
-        style: post.style || 'engaging',
+      }],
+      facebook: [{
+        style: 'engaging',
         mainIdeaId: 1,
-        content: post.content || '',
+        content: facebookContent,
         platform: 'Facebook'
-      })),
+      }],
       infographic: {
         title: title,
         subtitle: mainIdeas[0].description,
@@ -128,14 +145,14 @@ Return JSON with this EXACT structure (no extra text):
       },
       linkedinPulse: {
         mainIdeaId: 1,
-        content: `# ${parsedContent.article?.headline || title}\n\n${parsedContent.article?.summary || ''}`,
-        wordCount: 200,
+        content: `# ${title}\n\n${summaryContent}`,
+        wordCount: summaryContent.split(/\s+/).length,
         platform: 'LinkedIn Pulse'
       },
       substack: {
         mainIdeaId: 1,
-        content: `Subject: ${parsedContent.article?.headline || title}\n\n${parsedContent.article?.summary || ''}`,
-        wordCount: 200,
+        content: `Subject: ${title}\n\n${summaryContent}`,
+        wordCount: summaryContent.split(/\s+/).length,
         platform: 'Substack'
       },
       youtubeShorts: {
