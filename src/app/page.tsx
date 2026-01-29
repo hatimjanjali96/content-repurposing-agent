@@ -20,71 +20,123 @@ export default function Home() {
   const [data, setData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const handleGenerate = async ({ url, file }: GenerateInput) => {
+  const handleGenerate = async ({ url, file: _file }: GenerateInput) => {
     setStatus('generating');
     setProgress(0);
     setError(null);
     setData(null);
 
     try {
-      const formData = new FormData();
-      formData.append('blogUrl', url);
-      if (file) {
-        formData.append('brandGuidelines', file);
-      }
-
-      // Simulate progress updates
-      const progressInterval = setInterval(() => {
-        setProgress((prev) => {
-          if (prev >= 90) {
-            return prev;
-          }
-          // Variable progress increments based on stage
-          const increment = prev < 20 ? 8 : prev < 40 ? 6 : prev < 70 ? 4 : 2;
-          return Math.min(prev + increment, 90);
-        });
-      }, 800);
-
-      const response = await fetch('/api/generate', {
+      // Step 1: Scrape the blog (Edge Runtime - fast)
+      setProgress(10);
+      const scrapeResponse = await fetch('/api/scrape', {
         method: 'POST',
-        body: formData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url }),
       });
 
-      clearInterval(progressInterval);
-
-      // Handle non-OK responses or empty responses
-      let result;
-      try {
-        const text = await response.text();
-        if (!text || text.trim().length === 0) {
-          throw new Error('Server returned an empty response. The request may have timed out. Please try again.');
-        }
-        result = JSON.parse(text);
-      } catch (parseError) {
-        console.error('JSON parse error:', parseError);
-        if (parseError instanceof SyntaxError) {
-          throw new Error('Server returned an invalid response. The request may have timed out or the blog might be blocking access.');
-        }
-        throw parseError;
+      const scrapeResult = await scrapeResponse.json();
+      if (!scrapeResponse.ok || !scrapeResult.success) {
+        throw new Error(scrapeResult.error || 'Failed to fetch blog content');
       }
 
-      if (!response.ok || !result.success) {
-        throw new Error(result.error || 'Content generation failed');
+      setProgress(40);
+
+      // Step 2: Generate AI content (Edge Runtime)
+      const generateResponse = await fetch('/api/generate-ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: scrapeResult.data.title,
+          content: scrapeResult.data.content,
+          brandVoice: 'Professional, engaging'
+        }),
+      });
+
+      const generateResult = await generateResponse.json();
+      if (!generateResponse.ok || !generateResult.success) {
+        throw new Error(generateResult.error || 'Content generation failed');
       }
 
-      // Complete the progress
+      setProgress(90);
+
+      // Build final content package
+      const contentPackage = {
+        blogMetadata: {
+          title: scrapeResult.data.title,
+          url: scrapeResult.data.url,
+          author: '',
+          date: '',
+          wordCount: scrapeResult.data.wordCount
+        },
+        brandGuidelines: {
+          tone: 'Professional',
+          platforms: ['LinkedIn', 'Instagram', 'Twitter', 'Facebook']
+        },
+        mainIdeas: generateResult.data.mainIdeas,
+        content: generateResult.data.content,
+        schedule: generateSchedule(generateResult.data.content),
+        summary: {
+          totalPieces: countPieces(generateResult.data.content),
+          platforms: 8,
+          pages: 15,
+          generatedAt: new Date().toISOString()
+        }
+      };
+
       setProgress(100);
 
-      // Short delay before showing complete state
       setTimeout(() => {
-        setData(result.data);
+        setData(contentPackage);
         setStatus('complete');
-      }, 500);
+      }, 300);
 
     } catch (err) {
       setStatus('error');
       setError(err instanceof Error ? err.message : 'An unexpected error occurred');
     }
+  };
+
+  // Helper to count content pieces
+  const countPieces = (content: Record<string, unknown>) => {
+    let count = 0;
+    if (Array.isArray(content.linkedin)) count += content.linkedin.length;
+    if (Array.isArray(content.instagram)) count += content.instagram.length;
+    if (Array.isArray(content.twitter)) count += content.twitter.length;
+    if (Array.isArray(content.facebook)) count += content.facebook.length;
+    if (content.infographic) count += 1;
+    if (content.linkedinPulse) count += 1;
+    if (content.substack) count += 1;
+    if (content.youtubeShorts) count += 1;
+    return count;
+  };
+
+  // Helper to generate posting schedule
+  const generateSchedule = (_content: Record<string, unknown>) => {
+    const posts: Array<{day: number; platform: string; contentType: string; time: string}> = [];
+    const platforms = ['LinkedIn', 'Instagram', 'Twitter/X', 'Facebook'];
+    const times = ['09:00 AM', '12:00 PM', '03:00 PM', '06:00 PM'];
+
+    for (let week = 1; week <= 4; week++) {
+      for (let day = 1; day <= 5; day++) {
+        const dayNum = (week - 1) * 7 + day;
+        posts.push({
+          day: dayNum,
+          platform: platforms[(day - 1) % platforms.length],
+          contentType: 'Post',
+          time: times[(day - 1) % times.length]
+        });
+      }
+    }
+
+    return {
+      posts,
+      summary: {
+        totalPosts: posts.length,
+        postsPerWeek: 5,
+        platforms: platforms.length
+      }
+    };
   };
 
   return (
