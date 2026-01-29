@@ -1,6 +1,6 @@
 'use client';
 
-import { Github, Linkedin, Globe } from 'lucide-react';
+import { Linkedin, Globe } from 'lucide-react';
 
 export default function Footer() {
   return (
@@ -8,7 +8,7 @@ export default function Footer() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="text-center space-y-6">
           <div>
-            <h3 className="text-xl font-semibold text-white mb-2">Content Repurposing Agent</h3>
+            <h3 className="text-xl font-semibold text-white mb-2">Social Marketing Content Team</h3>
             <p className="text-sm text-gray-400">
               AI-powered content transformation for modern marketers
             </p>
@@ -16,17 +16,7 @@ export default function Footer() {
 
           <div className="flex items-center justify-center gap-6">
             <a
-              href="https://github.com/hatimjohar/content-repurposing-agent"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors duration-200"
-            >
-              <Github className="w-5 h-5" />
-              <span className="hidden sm:inline">GitHub</span>
-            </a>
-            <span className="text-gray-700">|</span>
-            <a
-              href="https://linkedin.com/in/hatimjohar"
+              href="https://linkedin.com/in/hatimjanjali"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors duration-200"
@@ -36,7 +26,7 @@ export default function Footer() {
             </a>
             <span className="text-gray-700">|</span>
             <a
-              href="https://hatimjohar.com"
+              href="https://resume-website-one-ruby.vercel.app/"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors duration-200"
@@ -48,7 +38,7 @@ export default function Footer() {
 
           <div className="pt-6 border-t border-gray-800">
             <p className="text-sm text-gray-500">
-              Built by Hatim Johar - 2025
+              Built by Hatim Janjali - 2026
             </p>
             <p className="text-xs text-gray-600 mt-2">
               Powered by Groq AI + Vercel

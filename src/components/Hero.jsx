@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Zap, LayoutGrid, DollarSign } from 'lucide-react';
 
 export default function Hero() {
   const [isVisible, setIsVisible] = useState(false);
@@ -25,9 +25,9 @@ export default function Hero() {
           <div className="flex h-16 items-center justify-between">
             <a className="flex items-center gap-2 text-xl font-bold text-gray-900" href="#">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
-                <span className="text-white text-sm font-bold">CR</span>
+                <span className="text-white text-sm font-bold">SM</span>
               </div>
-              ContentRepurpose
+              SocialMarketing
             </a>
             <button
               onClick={scrollToGenerator}
@@ -52,7 +52,7 @@ export default function Hero() {
               <span className="shrink-0 rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold text-white">
                 AI-Powered
               </span>
-              <span className="text-gray-600 text-sm">Free content repurposing tool</span>
+              <span className="text-gray-600 text-sm">Your social marketing content team</span>
             </div>
 
             {/* Headline */}
@@ -97,7 +97,7 @@ export default function Hero() {
 
             {/* Description */}
             <p className="max-w-2xl text-lg text-gray-600 sm:text-xl">
-              AI-powered content repurposing for marketers who move fast. Generate weeks of social media content from a single blog article in under 2 minutes.
+              Your AI-powered social marketing content team. Generate weeks of social media content from a single blog article in under 2 minutes.
             </p>
 
             {/* CTA Button */}
@@ -109,18 +109,18 @@ export default function Hero() {
               <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
             </button>
 
-            {/* Stats */}
-            <div className="flex flex-wrap items-center justify-center gap-8 pt-4 text-sm text-gray-500">
+            {/* Stats with Icons */}
+            <div className="flex flex-wrap items-center justify-center gap-8 pt-4 text-sm text-gray-600">
               <div className="flex items-center gap-2">
-                <span className="flex h-2 w-2 rounded-full bg-green-500"></span>
+                <Zap className="h-4 w-4 text-yellow-500" />
                 <span>Under 2 min generation</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="flex h-2 w-2 rounded-full bg-blue-500"></span>
+                <LayoutGrid className="h-4 w-4 text-blue-500" />
                 <span>21+ content pieces</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="flex h-2 w-2 rounded-full bg-purple-500"></span>
+                <DollarSign className="h-4 w-4 text-green-500" />
                 <span>100% free to use</span>
               </div>
             </div>
