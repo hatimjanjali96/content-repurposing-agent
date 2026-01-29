@@ -52,7 +52,21 @@ export default function Home() {
 
       clearInterval(progressInterval);
 
-      const result = await response.json();
+      // Handle non-OK responses or empty responses
+      let result;
+      try {
+        const text = await response.text();
+        if (!text || text.trim().length === 0) {
+          throw new Error('Server returned an empty response. The request may have timed out. Please try again.');
+        }
+        result = JSON.parse(text);
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        if (parseError instanceof SyntaxError) {
+          throw new Error('Server returned an invalid response. The request may have timed out or the blog might be blocking access.');
+        }
+        throw parseError;
+      }
 
       if (!response.ok || !result.success) {
         throw new Error(result.error || 'Content generation failed');

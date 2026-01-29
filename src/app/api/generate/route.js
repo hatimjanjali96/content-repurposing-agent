@@ -5,11 +5,24 @@ import { extractMainIdeas, generateAllContent } from '@/lib/contentGenerator';
 import { generatePostingSchedule } from '@/lib/scheduler';
 
 export const maxDuration = 60; // Allow up to 60 seconds for generation
+export const dynamic = 'force-dynamic';
 
 export async function POST(request) {
+  let blogUrl = '';
+
   try {
-    const formData = await request.formData();
-    const blogUrl = formData.get('blogUrl');
+    let formData;
+    try {
+      formData = await request.formData();
+    } catch (formError) {
+      console.error('FormData parsing error:', formError);
+      return NextResponse.json(
+        { success: false, error: 'Failed to parse form data. Please try again.' },
+        { status: 400 }
+      );
+    }
+
+    blogUrl = formData.get('blogUrl');
     const brandFile = formData.get('brandGuidelines');
 
     // Validate URL
@@ -30,9 +43,21 @@ export async function POST(request) {
     }
 
     // Stage 1: Fetch blog content
-    console.log('Stage 1: Fetching blog content...');
-    const blogContent = await scrapeBlogContent(blogUrl);
-    console.log(`Blog fetched: ${blogContent.title} (${blogContent.wordCount} words)`);
+    console.log('Stage 1: Fetching blog content from:', blogUrl);
+    let blogContent;
+    try {
+      blogContent = await scrapeBlogContent(blogUrl);
+      console.log(`Blog fetched: ${blogContent.title} (${blogContent.wordCount} words)`);
+    } catch (scrapeError) {
+      console.error('Scraping error:', scrapeError);
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Failed to fetch blog content: ${scrapeError.message}. Try a different blog URL or check if the site allows access.`
+        },
+        { status: 400 }
+      );
+    }
 
     // Stage 2: Parse brand guidelines (or use defaults)
     console.log('Stage 2: Parsing brand guidelines...');
@@ -92,10 +117,16 @@ export async function POST(request) {
 
   } catch (error) {
     console.error('Generation error:', error);
+    // Ensure we always return valid JSON
+    const errorMessage = error instanceof Error
+      ? error.message
+      : 'Content generation failed. Please try again.';
+
     return NextResponse.json(
       {
         success: false,
-        error: error.message || 'Content generation failed. Please try again.'
+        error: errorMessage,
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
       },
       { status: 500 }
     );
