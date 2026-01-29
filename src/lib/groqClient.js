@@ -1,20 +1,21 @@
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
-const GROQ_MODEL = process.env.GROQ_MODEL || 'mixtral-8x7b-32768';
+// Use llama-3.1-8b-instant for speed (much faster than mixtral)
+const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.1-8b-instant';
 
 export async function generateWithGroq(systemPrompt, userPrompt, maxTokens = 2000) {
   if (!GROQ_API_KEY) {
     throw new Error('Groq API key is not configured. Please add GROQ_API_KEY to environment variables.');
   }
 
-  // Truncate user prompt if too long to avoid token limits
-  const maxPromptLength = 8000;
+  // Truncate user prompt to fit within limits and speed up processing
+  const maxPromptLength = 4000;
   const truncatedUserPrompt = userPrompt.length > maxPromptLength
-    ? userPrompt.substring(0, maxPromptLength) + '...[content truncated]'
+    ? userPrompt.substring(0, maxPromptLength) + '...[truncated]'
     : userPrompt;
 
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 45000); // 45 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout for Vercel hobby
 
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',

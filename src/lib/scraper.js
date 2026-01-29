@@ -16,7 +16,7 @@ export async function scrapeBlogContent(url) {
         'Cache-Control': 'no-cache',
         'Pragma': 'no-cache'
       },
-      timeout: 15000, // Reduced timeout for faster failure
+      timeout: 5000, // 5 second timeout for Vercel hobby plan
       maxRedirects: 5,
       validateStatus: (status) => status < 400
     });
