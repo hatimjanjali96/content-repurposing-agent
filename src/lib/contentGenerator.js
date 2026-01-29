@@ -4,7 +4,6 @@ import { generateWithGroq } from './groqClient';
 export async function extractMainIdeas(blogContent) {
   // Skip API call - extract ideas directly from content to save time
   const title = blogContent.title || 'Key Insights';
-  const contentPreview = blogContent.content.substring(0, 500);
 
   return [
     { id: 1, title: "Core Message", description: `Main insight from: ${title}` },
@@ -52,7 +51,7 @@ Return JSON with this EXACT structure (no extra text):
 
     // Transform to expected format
     return {
-      linkedin: (content.linkedin || []).map((post, i) => ({
+      linkedin: (content.linkedin || []).map((post) => ({
         format: post.format || 'insight',
         mainIdeaId: 1,
         content: post.content || '',
