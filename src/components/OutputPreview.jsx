@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Download, FileText, AlertTriangle, CheckCircle2, Package } from 'lucide-react';
 import ProgressStages from './ProgressStages';
 
-export default function OutputPreview({ status, progress, data, error }) {
+export default function OutputPreview({ status, progress, currentStage, data, error }) {
   const [isDownloading, setIsDownloading] = useState(false);
 
   const downloadPDF = async () => {
@@ -58,7 +58,7 @@ export default function OutputPreview({ status, progress, data, error }) {
   if (status === 'generating') {
     return (
       <div className="bg-white rounded-2xl p-8 sm:p-12 shadow-xl border border-gray-100 flex items-center justify-center min-h-[500px]">
-        <ProgressStages progress={progress} />
+        <ProgressStages progress={progress} currentStage={currentStage} />
       </div>
     );
   }
