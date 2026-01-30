@@ -6,8 +6,8 @@ export async function POST(request) {
   try {
     const { title, content } = await request.json();
 
-    if (!content) {
-      return NextResponse.json({ success: false, error: 'Content is required' }, { status: 400 });
+    if (!content || content.length < 200) {
+      return NextResponse.json({ success: false, error: 'Content too short' }, { status: 400 });
     }
 
     const GROQ_API_KEY = process.env.GROQ_API_KEY;
@@ -15,25 +15,37 @@ export async function POST(request) {
       return NextResponse.json({ success: false, error: 'Groq API key not configured' }, { status: 500 });
     }
 
-    const systemPrompt = `You are a content strategist extracting SPECIFIC, CONCRETE main ideas from articles.
+    const systemPrompt = `You are a content strategist analyzing an article to extract SPECIFIC, CONCRETE main ideas.
 
-CRITICAL: Extract ideas with ACTUAL DETAILS from the article - not generic placeholders.
+CRITICAL RULES:
+1. Each idea MUST include SPECIFIC facts, numbers, or examples from the article
+2. NEVER use generic titles like "Core Message", "Key Takeaway", "Main Idea"
+3. Each description must be 80-120 words with concrete details
+4. Extract 6 completely DIFFERENT ideas - no overlap
 
-BAD (DO NOT DO):
-{"title": "Core Message", "description": "Main insight from article"}
+EXAMPLE OF GOOD OUTPUT:
+{
+  "id": 1,
+  "title": "Loop Marketing Creates 47% Higher Customer Retention",
+  "description": "The article reveals that companies implementing loop marketing strategies see 47% higher customer retention compared to traditional linear funnels. This approach focuses on creating continuous engagement cycles rather than one-time conversions. Key components include post-purchase nurturing, referral programs integrated into the product experience, and community-driven content that keeps customers engaged long after the initial sale. HubSpot's own data shows their loop marketing approach generated 3x more qualified leads from existing customers than from cold outreach."
+}
 
-GOOD (DO THIS):
-{"title": "Voice Search Queries Are 3x Longer", "description": "Research shows voice queries average 29 words vs 9 for text. This means content needs long-tail conversational phrases."}
+Return ONLY a JSON array with 6 ideas. No markdown, no explanation.`;
 
-Each idea MUST have specific facts, statistics, or examples from the article.`;
+    const userPrompt = `Analyze this article and extract 6 SPECIFIC main ideas with detailed descriptions.
 
-    const userPrompt = `Extract 6 SPECIFIC main ideas from this article. Include actual details, numbers, and examples.
+ARTICLE TITLE: ${title}
 
-TITLE: ${title}
-CONTENT: ${content.substring(0, 3000)}
+ARTICLE CONTENT:
+${content.substring(0, 4000)}
 
-Return ONLY a JSON array with 6 ideas:
-[{"id":1,"title":"Specific idea with detail","description":"2-3 sentences with SPECIFIC facts from the article"},...]`;
+Extract 6 ideas. Each must have:
+- Specific title (include numbers/facts if available)
+- 80-120 word description with concrete details from the article
+- Different focus than other ideas
+
+Return as JSON array:
+[{"id":1,"title":"Specific title with detail","description":"80-120 word description with facts"},...]`;
 
     const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -48,7 +60,7 @@ Return ONLY a JSON array with 6 ideas:
           { role: 'user', content: userPrompt }
         ],
         temperature: 0.7,
-        max_tokens: 1500,
+        max_tokens: 2500,
       }),
     });
 
@@ -56,7 +68,7 @@ Return ONLY a JSON array with 6 ideas:
       const errorData = await groqResponse.json().catch(() => ({}));
       return NextResponse.json({
         success: false,
-        error: `AI generation failed: ${errorData.error?.message || groqResponse.statusText}`
+        error: `AI failed: ${errorData.error?.message || groqResponse.statusText}`
       }, { status: 500 });
     }
 
@@ -66,7 +78,7 @@ Return ONLY a JSON array with 6 ideas:
     // Parse JSON
     let mainIdeas;
     try {
-      const cleaned = aiContent.replace(/```json|```/g, '').trim();
+      let cleaned = aiContent.replace(/```json|```/g, '').trim();
       const jsonStart = cleaned.indexOf('[');
       const jsonEnd = cleaned.lastIndexOf(']') + 1;
 
@@ -75,21 +87,58 @@ Return ONLY a JSON array with 6 ideas:
       }
 
       mainIdeas = JSON.parse(cleaned.substring(jsonStart, jsonEnd));
+
+      // Validate - reject generic ideas
+      for (const idea of mainIdeas) {
+        if (idea.title.includes('Core Message') ||
+            idea.title.includes('Key Takeaway') ||
+            idea.title.includes('Main Idea') ||
+            idea.title.length < 20) {
+          throw new Error('Generic idea detected');
+        }
+      }
+
     } catch (_parseError) {
-      // Fallback with article-specific ideas
+      // Create article-specific fallback ideas
+      const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 30).slice(0, 12);
+
       mainIdeas = [
-        { id: 1, title: `Key Strategy from "${title}"`, description: "Primary strategic insight from the article content." },
-        { id: 2, title: "Implementation Approach", description: "How to practically apply the concepts discussed." },
-        { id: 3, title: "Industry Impact", description: "Broader implications for the field." },
-        { id: 4, title: "Best Practices", description: "Recommended approaches from the article." },
-        { id: 5, title: "Common Challenges", description: "Problems and solutions addressed." },
-        { id: 6, title: "Future Outlook", description: "Where this trend is heading." }
+        {
+          id: 1,
+          title: `Strategic Insight: ${title.substring(0, 50)}`,
+          description: sentences[0] ? sentences[0].trim() + '. ' + (sentences[1] || '').trim() : `Key strategic insight from "${title}" that shapes how professionals approach this topic.`
+        },
+        {
+          id: 2,
+          title: `Implementation Framework from ${title.split(' ').slice(0, 4).join(' ')}`,
+          description: sentences[2] ? sentences[2].trim() + '. ' + (sentences[3] || '').trim() : `Practical framework for implementing the concepts discussed in the article.`
+        },
+        {
+          id: 3,
+          title: `Market Impact: How This Changes the Industry`,
+          description: sentences[4] ? sentences[4].trim() + '. ' + (sentences[5] || '').trim() : `The broader industry implications and market shifts driven by these trends.`
+        },
+        {
+          id: 4,
+          title: `Data-Driven Approach to ${title.split(' ').slice(0, 3).join(' ')}`,
+          description: sentences[6] ? sentences[6].trim() + '. ' + (sentences[7] || '').trim() : `Evidence-based methodology for measuring and optimizing results.`
+        },
+        {
+          id: 5,
+          title: `Common Pitfalls and How to Avoid Them`,
+          description: sentences[8] ? sentences[8].trim() + '. ' + (sentences[9] || '').trim() : `Critical mistakes to avoid and proven strategies for success.`
+        },
+        {
+          id: 6,
+          title: `Future Outlook: Where This Trend Is Heading`,
+          description: sentences[10] ? sentences[10].trim() + '. ' + (sentences[11] || '').trim() : `Predictions and emerging opportunities in this evolving landscape.`
+        }
       ];
     }
 
     return NextResponse.json({
       success: true,
-      data: { mainIdeas }
+      data: { mainIdeas: mainIdeas.slice(0, 6) }
     });
 
   } catch (error) {

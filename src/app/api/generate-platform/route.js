@@ -2,153 +2,241 @@ import { NextResponse } from 'next/server';
 
 export const runtime = 'edge';
 
-const PLATFORM_PROMPTS = {
+const PLATFORM_CONFIGS = {
   linkedin: {
-    system: `You are a LinkedIn content expert. Create professional, thought-leadership posts.
-Each post must be 150-200 words with substance, specific examples, and clear value.
-Never use generic phrases like "Discover the future" or "Game-changing".`,
-    prompt: (title, content, ideas, brandVoice) => `Create 3 LinkedIn posts based on this article. Each post must use a DIFFERENT main idea.
+    system: `You are a LinkedIn content expert creating professional thought-leadership posts.
+
+CRITICAL REQUIREMENTS:
+- Each post MUST be 150-200 words (count them!)
+- Use SPECIFIC details from the main idea provided
+- NO generic phrases like "Discover the future" or "Game-changing"
+- Write like a human expert, not AI
+- Include 3-5 relevant hashtags at the end
+- End with a genuine discussion question`,
+
+    prompt: (title, content, ideas, brandVoice) => {
+      const idea1 = ideas[0] || { title: 'Key Insight', description: 'Important insight' };
+      const idea2 = ideas[1] || ideas[0] || { title: 'Key Insight', description: 'Important insight' };
+      const idea3 = ideas[2] || ideas[0] || { title: 'Key Insight', description: 'Important insight' };
+
+      return `Create 3 LinkedIn posts based on these SPECIFIC ideas. Each post MUST be 150-200 words.
 
 ARTICLE: "${title}"
-KEY CONTENT: ${content.substring(0, 1500)}
 
-MAIN IDEAS TO USE (one per post):
-${ideas.slice(0, 3).map((idea, i) => `${i + 1}. ${idea.title}: ${idea.description}`).join('\n')}
+POST 1 - STORYTELLING FORMAT (use this idea):
+Idea: ${idea1.title}
+Details: ${idea1.description}
+Write a story-driven post. Start with a scenario or observation, build to the insight, end with a question.
 
-REQUIREMENTS FOR EACH POST:
-- 150-200 words (MANDATORY - not less!)
-- Start with a compelling hook (not "Discover...")
-- Include SPECIFIC facts or examples
-- End with engaging question
-- Add 3-5 relevant hashtags
-- Format: storytelling for post 1, data-driven for post 2, actionable tips for post 3
+POST 2 - DATA/INSIGHTS FORMAT (use this idea):
+Idea: ${idea2.title}
+Details: ${idea2.description}
+Lead with a surprising fact or statistic. Explain implications. Ask for others' experience.
+
+POST 3 - ACTIONABLE TIPS FORMAT (use this idea):
+Idea: ${idea3.title}
+Details: ${idea3.description}
+Provide 3-4 specific actionable tips. Use numbered list format. End with implementation question.
 
 Brand voice: ${brandVoice}
 
-Return JSON array with 3 posts:
-[{"format":"storytelling","content":"Full 150-200 word post with hashtags"},{"format":"data-driven","content":"..."},{"format":"actionable","content":"..."}]`
+Return as JSON array. Each post MUST be 150-200 words:
+[{"format":"storytelling","content":"Full 150-200 word post with hashtags"},{"format":"data-driven","content":"..."},{"format":"actionable","content":"..."}]`;
+    }
   },
 
   instagram: {
-    system: `You are an Instagram content expert. Create engaging, visual-first captions.
-Captions should be 80-120 words with emojis and 10-15 hashtags.`,
-    prompt: (title, content, ideas, brandVoice) => `Create 2 Instagram post captions based on this article.
-
-ARTICLE: "${title}"
-CONTENT: ${content.substring(0, 1000)}
-
-MAIN IDEAS:
-${ideas.slice(3, 5).map((idea, i) => `${i + 1}. ${idea.title}: ${idea.description}`).join('\n')}
+    system: `You are an Instagram content expert creating visual-first captions.
 
 REQUIREMENTS:
-- Caption 1: Inspirational/aspirational (100-125 words)
-- Caption 2: Educational/informative (80-100 words)
-- Use 5-8 relevant emojis per caption
-- Include 10-15 hashtags at the end
-- Include a visual concept description for each
+- Captions: 80-120 words each
+- Include 5-8 emojis naturally integrated
+- Include 10-15 relevant hashtags
+- Describe visual concept for each post`,
+
+    prompt: (title, content, ideas, brandVoice) => {
+      const idea1 = ideas[3] || ideas[0];
+      const idea2 = ideas[4] || ideas[1] || ideas[0];
+
+      return `Create 2 Instagram posts with captions and design briefs.
+
+ARTICLE: "${title}"
+
+POST 1 - INSPIRATIONAL (use this idea):
+Idea: ${idea1.title}
+Details: ${idea1.description}
+Caption: 100-120 words, inspirational tone, 5-8 emojis, end with CTA
+
+POST 2 - EDUCATIONAL (use this idea):
+Idea: ${idea2.title}
+Details: ${idea2.description}
+Caption: 80-100 words, educational tone, 5-8 emojis, quick tips format
 
 Brand voice: ${brandVoice}
 
 Return JSON:
-[{"style":"inspirational","caption":"Caption with emojis and hashtags","visualConcept":"Describe ideal image"},{"style":"educational","caption":"...","visualConcept":"..."}]`
+[{"style":"inspirational","caption":"Full caption with emojis","hashtags":["tag1","tag2",...],"visualConcept":"Describe the ideal image/graphic"},{"style":"educational","caption":"...","hashtags":[...],"visualConcept":"..."}]`;
+    }
   },
 
   twitter: {
-    system: `You are a Twitter/X thread expert. Create engaging, informative threads.
-Each tweet must be under 280 characters but substantial.`,
-    prompt: (title, content, ideas, brandVoice) => `Create 2 Twitter threads based on this article. Each thread should have 5-6 tweets.
-
-ARTICLE: "${title}"
-CONTENT: ${content.substring(0, 1200)}
-
-MAIN IDEAS:
-${ideas.slice(0, 2).map((idea, i) => `${i + 1}. ${idea.title}: ${idea.description}`).join('\n')}
+    system: `You are a Twitter/X thread expert creating engaging, informative threads.
 
 REQUIREMENTS:
-- Thread 1: How-to/educational style (6 tweets)
-- Thread 2: Insights/analysis style (5 tweets)
-- Tweet 1: Hook that grabs attention
-- Each tweet: 180-280 characters, valuable standalone
-- Final tweet: CTA
+- Each tweet: 200-280 characters (use the space!)
+- Thread 1: 6 tweets
+- Thread 2: 5 tweets
+- Tweet 1: Strong hook
+- Final tweet: CTA`,
 
-Brand voice: ${brandVoice}
+    prompt: (title, _content, ideas, _brandVoice) => {
+      const idea1 = ideas[0] || { title: 'Key Insight', description: 'Details' };
+      const idea2 = ideas[1] || ideas[0];
+
+      return `Create 2 Twitter threads.
+
+ARTICLE: "${title}"
+
+THREAD 1 - HOW-TO (6 tweets, use this idea):
+Idea: ${idea1.title}
+Details: ${idea1.description}
+Structure: Hook → Problem → Steps 1-3 → Summary → CTA
+
+THREAD 2 - INSIGHTS (5 tweets, use this idea):
+Idea: ${idea2.title}
+Details: ${idea2.description}
+Structure: Hook → Insight 1 → Insight 2 → Implication → CTA
+
+Each tweet should be 200-280 characters. Use the space!
 
 Return JSON:
-[{"style":"how-to","tweets":["Tweet 1...","Tweet 2...","Tweet 3...","Tweet 4...","Tweet 5...","Tweet 6..."]},{"style":"insights","tweets":["..."]}]`
+[{"style":"how-to","tweets":["Tweet 1 (200-280 chars)","Tweet 2",...]},{"style":"insights","tweets":[...]}]`;
+    }
   },
 
   facebook: {
-    system: `You are a Facebook content expert. Create community-focused, conversational posts.
-Posts should be 150-250 words and encourage discussion.`,
-    prompt: (title, content, ideas, brandVoice) => `Create 2 Facebook posts based on this article.
-
-ARTICLE: "${title}"
-CONTENT: ${content.substring(0, 1200)}
-
-MAIN IDEAS:
-${ideas.slice(1, 3).map((idea, i) => `${i + 1}. ${idea.title}: ${idea.description}`).join('\n')}
+    system: `You are a Facebook content expert creating community-focused posts.
 
 REQUIREMENTS:
-- Post 1: Educational/long-form (200-250 words)
-- Post 2: Conversational/relatable (150-180 words)
-- Focus on community discussion
-- End with thought-provoking question
-- Use 1-3 emojis sparingly
+- Post 1: 200-250 words (educational)
+- Post 2: 150-180 words (conversational)
+- Focus on sparking discussion
+- End with engaging question
+- Use 2-4 emojis sparingly`,
+
+    prompt: (title, content, ideas, brandVoice) => {
+      const idea1 = ideas[1] || ideas[0];
+      const idea2 = ideas[2] || ideas[0];
+
+      return `Create 2 Facebook posts.
+
+ARTICLE: "${title}"
+
+POST 1 - EDUCATIONAL (200-250 words, use this idea):
+Idea: ${idea1.title}
+Details: ${idea1.description}
+Share knowledge, provide value, spark discussion. End with question.
+
+POST 2 - CONVERSATIONAL (150-180 words, use this idea):
+Idea: ${idea2.title}
+Details: ${idea2.description}
+Personal, relatable tone. Ask for community input.
 
 Brand voice: ${brandVoice}
 
 Return JSON:
-[{"style":"educational","content":"Full 200-250 word post"},{"style":"conversational","content":"Full 150-180 word post"}]`
+[{"style":"educational","content":"Full 200-250 word post"},{"style":"conversational","content":"Full 150-180 word post"}]`;
+    }
   },
 
   linkedinPulse: {
-    system: `You are a thought leadership article writer. Create comprehensive, authoritative articles.
-Articles must be 600-800 words with clear structure and sections.`,
-    prompt: (title, content, ideas, brandVoice) => `Write a LinkedIn Pulse article based on this content.
+    system: `You are writing a comprehensive LinkedIn Pulse article.
 
-ARTICLE: "${title}"
-FULL CONTENT: ${content.substring(0, 2500)}
+CRITICAL: Article MUST be 600-800 words. This is NOT optional.
 
-MAIN IDEAS TO COVER:
-${ideas.map((idea, i) => `${i + 1}. ${idea.title}: ${idea.description}`).join('\n')}
+Structure required:
+- Compelling headline
+- Hook opening (2-3 sentences)
+- 3-4 main sections with ## headers
+- Specific examples throughout
+- Strong conclusion with CTA`,
+
+    prompt: (title, content, ideas, brandVoice) => {
+      const allIdeas = ideas.map(i => `- ${i.title}: ${i.description}`).join('\n');
+
+      return `Write a COMPLETE 600-800 word LinkedIn Pulse article.
+
+TOPIC: ${title}
+
+KEY IDEAS TO COVER:
+${allIdeas}
+
+CONTEXT FROM ARTICLE:
+${content.substring(0, 2000)}
 
 STRUCTURE (600-800 words total):
-1. Compelling headline
-2. Hook opening (2-3 sentences)
-3. ## Section 1: The Context (150 words)
-4. ## Section 2: Key Insights (200 words)
-5. ## Section 3: Practical Application (150 words)
-6. ## Section 4: Looking Ahead (100 words)
-7. Conclusion with CTA
+# [Compelling Headline]
+
+[Hook - 2-3 sentences that grab attention]
+
+## The Current Landscape (150-200 words)
+[Set context, explain the shift happening]
+
+## Key Insights (200-250 words)
+[Deep dive into main findings with specific examples]
+
+## Practical Implications (150-200 words)
+[What this means for professionals, actionable takeaways]
+
+## Looking Ahead (100-150 words)
+[Future outlook, call to action, discussion question]
 
 Brand voice: ${brandVoice}
 
 Return JSON:
-{"headline":"Compelling headline","content":"Full 600-800 word article with ## section headers"}`
+{"headline":"Compelling headline","content":"Full 600-800 word article with ## section headers"}`;
+    }
   },
 
   substack: {
-    system: `You are a newsletter writer. Create personal, engaging newsletters.
-Newsletters should be 600-800 words with a personal, storytelling tone.`,
-    prompt: (title, content, ideas, brandVoice) => `Write a Substack newsletter based on this content.
+    system: `You are writing a Substack newsletter with personal, storytelling tone.
 
-ARTICLE: "${title}"
-CONTENT: ${content.substring(0, 2500)}
+CRITICAL: Newsletter MUST be 600-800 words.
+
+Tone: Personal, conversational, like writing to a friend
+Structure: Personal opening → Main insights → Practical takeaways → Community question`,
+
+    prompt: (title, content, ideas, brandVoice) => {
+      const allIdeas = ideas.map(i => `- ${i.title}: ${i.description}`).join('\n');
+
+      return `Write a COMPLETE 600-800 word Substack newsletter.
+
+TOPIC: ${title}
 
 KEY IDEAS:
-${ideas.map((idea, i) => `${i + 1}. ${idea.title}: ${idea.description}`).join('\n')}
+${allIdeas}
+
+CONTEXT:
+${content.substring(0, 2000)}
 
 STRUCTURE (600-800 words):
-1. Subject line (compelling, personal)
-2. Personal opening (connect with reader)
-3. Main insight (storytelling approach)
-4. Practical takeaways
-5. Community CTA (ask for replies)
+Subject: [Compelling subject line - personal, intriguing]
+
+[Personal opening - 100 words - story or observation that connects]
+
+[Main insight #1 - 200 words - conversational deep dive]
+
+[Main insight #2 - 200 words - practical application]
+
+[Takeaways section - 100 words - bullet points]
+
+[Closing - 100 words - personal reflection, question for readers]
 
 Brand voice: ${brandVoice}
 
 Return JSON:
-{"subject":"Email subject line","content":"Full 600-800 word newsletter"}`
+{"subject":"Email subject line","content":"Full 600-800 word newsletter"}`;
+    }
   }
 };
 
@@ -156,10 +244,10 @@ export async function POST(request) {
   try {
     const { platform, title, content, mainIdeas, brandVoice } = await request.json();
 
-    if (!platform || !PLATFORM_PROMPTS[platform]) {
+    if (!platform || !PLATFORM_CONFIGS[platform]) {
       return NextResponse.json({
         success: false,
-        error: `Invalid platform. Valid: ${Object.keys(PLATFORM_PROMPTS).join(', ')}`
+        error: `Invalid platform. Valid: ${Object.keys(PLATFORM_CONFIGS).join(', ')}`
       }, { status: 400 });
     }
 
@@ -168,8 +256,8 @@ export async function POST(request) {
       return NextResponse.json({ success: false, error: 'Groq API key not configured' }, { status: 500 });
     }
 
-    const platformConfig = PLATFORM_PROMPTS[platform];
-    const prompt = platformConfig.prompt(title, content, mainIdeas || [], brandVoice || 'Professional, engaging');
+    const config = PLATFORM_CONFIGS[platform];
+    const prompt = config.prompt(title, content, mainIdeas || [], brandVoice || 'Professional, engaging');
 
     const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -180,11 +268,11 @@ export async function POST(request) {
       body: JSON.stringify({
         model: 'llama-3.1-8b-instant',
         messages: [
-          { role: 'system', content: platformConfig.system },
+          { role: 'system', content: config.system },
           { role: 'user', content: prompt }
         ],
         temperature: 0.7,
-        max_tokens: 2500,
+        max_tokens: platform === 'linkedinPulse' || platform === 'substack' ? 3000 : 2000,
       }),
     });
 
@@ -202,24 +290,36 @@ export async function POST(request) {
     // Parse the response
     let parsedContent;
     try {
-      const cleaned = aiContent.replace(/```json|```/g, '').trim();
-      const jsonStart = cleaned.indexOf(/^\[/.test(cleaned) ? '[' : '{');
-      const jsonEnd = cleaned.lastIndexOf(/^\[/.test(cleaned) ? ']' : '}') + 1;
+      let cleaned = aiContent.replace(/```json|```/g, '').trim();
+
+      // Find JSON
+      const isArray = platform === 'linkedin' || platform === 'instagram' || platform === 'twitter' || platform === 'facebook';
+      const startChar = isArray ? '[' : '{';
+      const endChar = isArray ? ']' : '}';
+
+      const jsonStart = cleaned.indexOf(startChar);
+      const jsonEnd = cleaned.lastIndexOf(endChar) + 1;
 
       if (jsonStart === -1 || jsonEnd === 0) {
         throw new Error('No JSON found');
       }
 
-      parsedContent = JSON.parse(cleaned.substring(jsonStart, jsonEnd));
-    } catch (parseError) {
-      console.error('Parse error:', parseError.message);
+      // Clean common issues
+      let jsonStr = cleaned.substring(jsonStart, jsonEnd)
+        .replace(/,\s*}/g, '}')
+        .replace(/,\s*]/g, ']')
+        .replace(/[\x00-\x1F\x7F]/g, ' ');
+
+      parsedContent = JSON.parse(jsonStr);
+    } catch (_parseError) {
+      console.error('Parse error, using fallback for', platform);
       return NextResponse.json({
         success: true,
         data: { platform, content: getFallbackContent(platform, title, mainIdeas) }
       });
     }
 
-    // Format the response based on platform
+    // Format the response
     const formattedContent = formatPlatformContent(platform, parsedContent, mainIdeas);
 
     return NextResponse.json({
@@ -240,8 +340,9 @@ function formatPlatformContent(platform, parsed, mainIdeas) {
   switch (platform) {
     case 'linkedin':
       return (Array.isArray(parsed) ? parsed : [parsed]).map((post, i) => ({
-        format: post.format || ['storytelling', 'data-driven', 'actionable'][i],
+        format: post.format || ['storytelling', 'data-driven', 'actionable'][i] || 'insight',
         mainIdeaId: (mainIdeas[i]?.id) || i + 1,
+        mainIdeaTitle: mainIdeas[i]?.title || 'Key Insight',
         content: post.content || '',
         wordCount: (post.content || '').split(/\s+/).length,
         platform: 'LinkedIn'
@@ -250,14 +351,16 @@ function formatPlatformContent(platform, parsed, mainIdeas) {
     case 'instagram':
       return (Array.isArray(parsed) ? parsed : [parsed]).map((post, i) => ({
         mainIdeaId: (mainIdeas[i + 3]?.id) || i + 1,
+        mainIdeaTitle: mainIdeas[i + 3]?.title || 'Key Insight',
         style: post.style || 'visual',
         caption: post.caption || '',
+        hashtags: post.hashtags || [],
         designBrief: {
-          visualConcept: post.visualConcept || 'Modern, clean design',
-          colorPalette: ['#3B82F6', '#1E293B', '#F8FAFC'],
-          typography: 'Sans-serif, bold',
-          layout: 'Centered composition',
-          stockPhotoKeywords: ['business', 'technology', 'growth']
+          visualConcept: post.visualConcept || 'Modern, clean design with bold typography',
+          colorPalette: ['#3B82F6', '#1E293B', '#F8FAFC', '#10B981'],
+          typography: 'Sans-serif, bold headlines',
+          layout: 'Centered composition with text overlay',
+          stockPhotoKeywords: ['business', 'technology', 'growth', 'success']
         },
         platform: 'Instagram'
       }));
@@ -266,6 +369,7 @@ function formatPlatformContent(platform, parsed, mainIdeas) {
       return (Array.isArray(parsed) ? parsed : [parsed]).map((thread, i) => ({
         style: thread.style || 'thread',
         mainIdeaId: (mainIdeas[i]?.id) || i + 1,
+        mainIdeaTitle: mainIdeas[i]?.title || 'Key Insight',
         tweets: (thread.tweets || []).map((text, j) => ({
           tweetNumber: j + 1,
           text: String(text).substring(0, 280)
@@ -277,6 +381,7 @@ function formatPlatformContent(platform, parsed, mainIdeas) {
       return (Array.isArray(parsed) ? parsed : [parsed]).map((post, i) => ({
         style: post.style || 'engaging',
         mainIdeaId: (mainIdeas[i + 1]?.id) || i + 1,
+        mainIdeaTitle: mainIdeas[i + 1]?.title || 'Key Insight',
         content: post.content || '',
         wordCount: (post.content || '').split(/\s+/).length,
         platform: 'Facebook'
@@ -285,6 +390,7 @@ function formatPlatformContent(platform, parsed, mainIdeas) {
     case 'linkedinPulse':
       return {
         mainIdeaId: mainIdeas[0]?.id || 1,
+        mainIdeaTitle: mainIdeas[0]?.title || 'Key Insight',
         headline: parsed.headline || '',
         content: parsed.content || '',
         wordCount: (parsed.content || '').split(/\s+/).length,
@@ -294,6 +400,7 @@ function formatPlatformContent(platform, parsed, mainIdeas) {
     case 'substack':
       return {
         mainIdeaId: mainIdeas[1]?.id || 1,
+        mainIdeaTitle: mainIdeas[1]?.title || 'Key Insight',
         subject: parsed.subject || '',
         content: parsed.content || '',
         wordCount: (parsed.content || '').split(/\s+/).length,
@@ -306,29 +413,32 @@ function formatPlatformContent(platform, parsed, mainIdeas) {
 }
 
 function getFallbackContent(platform, title, mainIdeas) {
-  const idea = mainIdeas?.[0] || { title: 'Key Insight', description: 'Important takeaway' };
+  const idea = mainIdeas?.[0] || { id: 1, title: 'Key Insight', description: 'Important insight from the article that professionals should consider.' };
 
   switch (platform) {
     case 'linkedin':
       return [{
         format: 'insight',
         mainIdeaId: 1,
-        content: `${idea.title}\n\n${idea.description}\n\nWhat's your experience with this? Share your thoughts below.\n\n#business #insights #professional`,
-        wordCount: 30,
+        mainIdeaTitle: idea.title,
+        content: `${idea.title}\n\n${idea.description}\n\nThis represents a significant shift in how we approach this challenge. The implications are clear: those who adapt early will have a competitive advantage.\n\nWhat's your experience with this? I'd love to hear how others are approaching this shift.\n\n#Business #Strategy #Innovation #Leadership`,
+        wordCount: 60,
         platform: 'LinkedIn'
       }];
 
     case 'instagram':
       return [{
         mainIdeaId: 1,
+        mainIdeaTitle: idea.title,
         style: 'visual',
-        caption: `✨ ${idea.title}\n\n${idea.description}\n\n#business #growth #success #tips`,
+        caption: `✨ ${idea.title}\n\n${idea.description}\n\n💡 Key takeaway: Stay ahead of the curve.\n\nDouble tap if this resonates! 👇\n\n#Business #Growth #Success #Strategy #Innovation #Tips #Insights`,
+        hashtags: ['business', 'growth', 'success', 'strategy', 'innovation', 'tips', 'insights'],
         designBrief: {
-          visualConcept: 'Modern design',
-          colorPalette: ['#3B82F6', '#1E293B', '#F8FAFC'],
+          visualConcept: 'Modern gradient background with bold white text overlay',
+          colorPalette: ['#3B82F6', '#1E293B', '#F8FAFC', '#10B981'],
           typography: 'Bold sans-serif',
-          layout: 'Centered',
-          stockPhotoKeywords: ['business', 'technology']
+          layout: 'Centered with icon accent',
+          stockPhotoKeywords: ['business', 'technology', 'success']
         },
         platform: 'Instagram'
       }];
@@ -337,10 +447,12 @@ function getFallbackContent(platform, title, mainIdeas) {
       return [{
         style: 'thread',
         mainIdeaId: 1,
+        mainIdeaTitle: idea.title,
         tweets: [
-          { tweetNumber: 1, text: `🧵 ${idea.title}` },
-          { tweetNumber: 2, text: idea.description?.substring(0, 270) || 'Key insight' },
-          { tweetNumber: 3, text: 'Follow for more insights! 🚀' }
+          { tweetNumber: 1, text: `🧵 ${idea.title}\n\nHere's what you need to know:` },
+          { tweetNumber: 2, text: idea.description?.substring(0, 270) || 'Key insight from the research.' },
+          { tweetNumber: 3, text: 'The implications are significant for anyone in this space.' },
+          { tweetNumber: 4, text: 'Follow for more insights like this! 🚀' }
         ],
         platform: 'Twitter/X'
       }];
@@ -349,25 +461,28 @@ function getFallbackContent(platform, title, mainIdeas) {
       return [{
         style: 'engaging',
         mainIdeaId: 1,
-        content: `${idea.title}\n\n${idea.description}\n\nWhat do you think? Share below! 👇`,
-        wordCount: 30,
+        mainIdeaTitle: idea.title,
+        content: `${idea.title}\n\n${idea.description}\n\nThis is something I've been thinking about a lot lately. The landscape is shifting, and it's fascinating to see how different people are responding.\n\nWhat's your take on this? Have you noticed similar trends in your work? I'd love to hear your perspective! 👇`,
+        wordCount: 60,
         platform: 'Facebook'
       }];
 
     case 'linkedinPulse':
       return {
         mainIdeaId: 1,
-        headline: title,
-        content: `# ${title}\n\n${mainIdeas?.map(i => `## ${i.title}\n${i.description}`).join('\n\n') || 'Content'}`,
-        wordCount: 100,
+        mainIdeaTitle: idea.title,
+        headline: `Understanding ${idea.title}: A Deep Dive`,
+        content: `# Understanding ${idea.title}: A Deep Dive\n\n${idea.description}\n\n## The Shifting Landscape\n\nThe way we approach this challenge is evolving rapidly. What worked yesterday may not work tomorrow.\n\n## Key Insights\n\nBased on recent developments, several patterns emerge that deserve attention.\n\n## What This Means For You\n\nThe practical implications are clear: adapt or risk falling behind.\n\n## Moving Forward\n\nWhat steps are you taking to stay ahead? Share your thoughts in the comments.`,
+        wordCount: 120,
         platform: 'LinkedIn Pulse'
       };
 
     case 'substack':
       return {
         mainIdeaId: 1,
-        subject: `Insights: ${title}`,
-        content: `${mainIdeas?.map(i => `**${i.title}**\n${i.description}`).join('\n\n') || 'Newsletter content'}`,
+        mainIdeaTitle: idea.title,
+        subject: `What I learned about ${idea.title}`,
+        content: `Subject: What I learned about ${idea.title}\n\nHey there,\n\nI've been diving deep into this topic lately, and I wanted to share some thoughts with you.\n\n${idea.description}\n\nThe more I explore this, the more I realize how much is changing. And fast.\n\n**Key Takeaways:**\n- Pay attention to the trends\n- Adapt your approach\n- Stay curious\n\nI'd love to hear what you think. Hit reply and let me know!\n\nUntil next time.`,
         wordCount: 100,
         platform: 'Substack'
       };
