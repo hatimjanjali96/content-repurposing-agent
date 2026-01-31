@@ -6,12 +6,10 @@ export default function ProgressStages({ progress, currentStage }) {
   const stages = [
     { id: 1, label: 'Fetching blog content', threshold: 15 },
     { id: 2, label: 'Analyzing & extracting ideas', threshold: 25 },
-    { id: 3, label: 'Generating LinkedIn content', threshold: 40 },
-    { id: 4, label: 'Generating Instagram content', threshold: 50 },
-    { id: 5, label: 'Generating Twitter threads', threshold: 60 },
-    { id: 6, label: 'Generating Facebook posts', threshold: 70 },
-    { id: 7, label: 'Creating long-form content', threshold: 85 },
-    { id: 8, label: 'Finalizing package', threshold: 100 }
+    { id: 3, label: 'Generating posts 1-7', threshold: 45 },
+    { id: 4, label: 'Generating posts 8-14', threshold: 65 },
+    { id: 5, label: 'Generating posts 15-21', threshold: 85 },
+    { id: 6, label: 'Finalizing package', threshold: 100 }
   ];
 
   const getStageStatus = (stage, index) => {
@@ -49,7 +47,7 @@ export default function ProgressStages({ progress, currentStage }) {
             />
           </svg>
         </div>
-        <h3 className="text-xl font-semibold text-gray-900">Creating Your Content</h3>
+        <h3 className="text-xl font-semibold text-gray-900">Creating 21 LinkedIn Posts</h3>
         {currentStage && (
           <p className="text-blue-600 font-medium mt-1">{currentStage}</p>
         )}

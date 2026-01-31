@@ -52,7 +52,7 @@ export default function Hero() {
               <span className="shrink-0 rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold text-white">
                 AI-Powered
               </span>
-              <span className="text-gray-600 text-sm">Your social marketing content team</span>
+              <span className="text-gray-600 text-sm">Your LinkedIn content machine</span>
             </div>
 
             {/* Headline */}
@@ -60,7 +60,7 @@ export default function Hero() {
               <span>Turn One Blog Into </span>
               <span className="relative inline-block">
                 <span className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
-                  21+ Platform-Ready Posts
+                  21 LinkedIn Posts
                 </span>
                 {/* Decorative underline */}
                 <svg
@@ -97,7 +97,7 @@ export default function Hero() {
 
             {/* Description */}
             <p className="max-w-2xl text-lg text-gray-600 sm:text-xl">
-              Your AI-powered social marketing content team. Generate weeks of social media content from a single blog article in under 2 minutes.
+              Generate a month of LinkedIn content from a single blog article. 21 unique posts with different formats and angles, ready to schedule.
             </p>
 
             {/* CTA Button */}
@@ -117,11 +117,11 @@ export default function Hero() {
               </div>
               <div className="flex items-center gap-2">
                 <LayoutGrid className="h-4 w-4 text-blue-500" />
-                <span>21+ content pieces</span>
+                <span>21 unique posts</span>
               </div>
               <div className="flex items-center gap-2">
                 <DollarSign className="h-4 w-4 text-green-500" />
-                <span>100% free to use</span>
+                <span>Month of content</span>
               </div>
             </div>
           </div>

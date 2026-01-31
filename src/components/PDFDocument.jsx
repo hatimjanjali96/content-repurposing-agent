@@ -5,7 +5,7 @@ import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 const styles = StyleSheet.create({
   // Cover Page
   coverPage: {
-    backgroundColor: '#1e3a8a',
+    backgroundColor: '#0077b5',
     padding: 60,
     justifyContent: 'center',
     alignItems: 'center',
@@ -30,12 +30,12 @@ const styles = StyleSheet.create({
   },
   coverMeta: {
     fontSize: 11,
-    color: '#cbd5e1',
+    color: '#cce5f3',
     marginTop: 30
   },
   coverSummary: {
     fontSize: 14,
-    color: '#e0e7ff',
+    color: '#e0f0fa',
     marginTop: 20,
     textAlign: 'center'
   },
@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#1e293b',
     marginBottom: 20,
-    borderBottom: '2px solid #3b82f6',
+    borderBottom: '2px solid #0077b5',
     paddingBottom: 10
   },
   heading2: {
@@ -87,12 +87,28 @@ const styles = StyleSheet.create({
     paddingBottom: 20
   },
   platformBadge: {
-    backgroundColor: '#3b82f6',
+    backgroundColor: '#0077b5',
     paddingVertical: 4,
     paddingHorizontal: 10,
     borderRadius: 4,
     marginBottom: 10,
     alignSelf: 'flex-start'
+  },
+  formatBadge: {
+    backgroundColor: '#f0f9ff',
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    borderRadius: 3,
+    marginBottom: 8,
+    alignSelf: 'flex-start',
+    borderWidth: 1,
+    borderColor: '#0077b5'
+  },
+  formatBadgeText: {
+    color: '#0077b5',
+    fontSize: 9,
+    fontWeight: 'bold',
+    textTransform: 'capitalize'
   },
   badgeText: {
     color: '#ffffff',
@@ -105,7 +121,7 @@ const styles = StyleSheet.create({
     marginBottom: 8
   },
   contentText: {
-    fontSize: 11,
+    fontSize: 10,
     color: '#334155',
     lineHeight: 1.7,
     backgroundColor: '#f8fafc',
@@ -120,7 +136,7 @@ const styles = StyleSheet.create({
   },
   bullet: {
     fontSize: 11,
-    color: '#3b82f6',
+    color: '#0077b5',
     marginRight: 8,
     width: 15
   },
@@ -147,42 +163,37 @@ const styles = StyleSheet.create({
     marginHorizontal: 10
   },
 
-  // Schedule
-  weekBlock: {
-    marginBottom: 25,
-    backgroundColor: '#f8fafc',
-    padding: 15,
-    borderRadius: 4
-  },
-  scheduleItem: {
-    marginLeft: 10,
-    marginBottom: 8,
-    paddingLeft: 10,
-    borderLeft: '2px solid #3b82f6'
-  },
-  note: {
-    fontSize: 9,
-    color: '#10b981',
-    fontStyle: 'italic',
-    marginTop: 2
-  },
-
-  // Two column layout
-  row: {
-    flexDirection: 'row',
-    marginBottom: 10
-  },
-  col: {
-    flex: 1,
-    paddingRight: 10
-  },
-
   // Footer
   pageNumber: {
     position: 'absolute',
     bottom: 20,
     right: 40,
     fontSize: 10,
+    color: '#94a3b8'
+  },
+
+  // Grid layout for posts overview
+  postGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10
+  },
+  postMini: {
+    width: '48%',
+    backgroundColor: '#f8fafc',
+    padding: 10,
+    borderRadius: 4,
+    marginBottom: 10,
+    borderLeft: '3px solid #0077b5'
+  },
+  postMiniTitle: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#0077b5',
+    marginBottom: 4
+  },
+  postMiniMeta: {
+    fontSize: 8,
     color: '#94a3b8'
   }
 });
@@ -198,14 +209,22 @@ export function PDFDocument({ data }) {
     );
   }
 
-  const { blogMetadata, mainIdeas, content, schedule, summary } = data;
+  const { blogMetadata, mainIdeas, linkedInPosts, summary: _summary } = data;
+  const posts = linkedInPosts || [];
+
+  // Split posts into groups for pages (4 posts per page for readability)
+  const postsPerPage = 3;
+  const postPages = [];
+  for (let i = 0; i < posts.length; i += postsPerPage) {
+    postPages.push(posts.slice(i, i + postsPerPage));
+  }
 
   return (
     <Document>
       {/* Cover Page */}
       <Page size="A4" style={styles.coverPage}>
         <View style={styles.coverContent}>
-          <Text style={styles.coverTitle}>Content Repurposing Package</Text>
+          <Text style={styles.coverTitle}>LinkedIn Content Package</Text>
           <Text style={styles.coverSubtitle}>
             {blogMetadata?.title || 'Generated Content'}
           </Text>
@@ -218,9 +237,9 @@ export function PDFDocument({ data }) {
             })}
           </Text>
           <Text style={styles.coverSummary}>
-            {summary?.totalPieces || 21}+ pieces across 8 platforms
+            {posts.length} LinkedIn Posts
           </Text>
-          <Text style={styles.coverSummary}>4-week strategic posting schedule</Text>
+          <Text style={styles.coverSummary}>Ready for a month of content</Text>
         </View>
       </Page>
 
@@ -229,344 +248,189 @@ export function PDFDocument({ data }) {
         <Text style={styles.heading1}>Table of Contents</Text>
         <View style={styles.tocList}>
           <View style={styles.tocItem}>
-            <Text>Executive Summary</Text>
+            <Text>Source Article Summary</Text>
             <View style={styles.tocDots} />
             <Text>3</Text>
           </View>
           <View style={styles.tocItem}>
-            <Text>Main Ideas Extracted</Text>
+            <Text>Key Ideas Extracted</Text>
+            <View style={styles.tocDots} />
+            <Text>3</Text>
+          </View>
+          <View style={styles.tocItem}>
+            <Text>Posts Overview</Text>
             <View style={styles.tocDots} />
             <Text>4</Text>
           </View>
           <View style={styles.tocItem}>
-            <Text>LinkedIn Content (5 posts)</Text>
+            <Text>LinkedIn Posts 1-{Math.min(3, posts.length)}</Text>
             <View style={styles.tocDots} />
             <Text>5</Text>
           </View>
+          {posts.length > 3 && (
+            <View style={styles.tocItem}>
+              <Text>LinkedIn Posts 4-{Math.min(6, posts.length)}</Text>
+              <View style={styles.tocDots} />
+              <Text>6</Text>
+            </View>
+          )}
+          {posts.length > 6 && (
+            <View style={styles.tocItem}>
+              <Text>LinkedIn Posts 7-{Math.min(9, posts.length)}</Text>
+              <View style={styles.tocDots} />
+              <Text>7</Text>
+            </View>
+          )}
+          {posts.length > 9 && (
+            <View style={styles.tocItem}>
+              <Text>LinkedIn Posts 10-{posts.length}</Text>
+              <View style={styles.tocDots} />
+              <Text>8+</Text>
+            </View>
+          )}
           <View style={styles.tocItem}>
-            <Text>Instagram Content (2 posts + Design Briefs)</Text>
+            <Text>Posting Schedule Tips</Text>
             <View style={styles.tocDots} />
-            <Text>8</Text>
-          </View>
-          <View style={styles.tocItem}>
-            <Text>Twitter/X Threads (3 threads)</Text>
-            <View style={styles.tocDots} />
-            <Text>10</Text>
-          </View>
-          <View style={styles.tocItem}>
-            <Text>Facebook Content (4 posts)</Text>
-            <View style={styles.tocDots} />
-            <Text>13</Text>
-          </View>
-          <View style={styles.tocItem}>
-            <Text>Infographic Outline</Text>
-            <View style={styles.tocDots} />
-            <Text>16</Text>
-          </View>
-          <View style={styles.tocItem}>
-            <Text>LinkedIn Pulse Article</Text>
-            <View style={styles.tocDots} />
-            <Text>17</Text>
-          </View>
-          <View style={styles.tocItem}>
-            <Text>Substack Newsletter</Text>
-            <View style={styles.tocDots} />
-            <Text>20</Text>
-          </View>
-          <View style={styles.tocItem}>
-            <Text>YouTube Shorts Script</Text>
-            <View style={styles.tocDots} />
-            <Text>23</Text>
-          </View>
-          <View style={styles.tocItem}>
-            <Text>4-Week Posting Schedule</Text>
-            <View style={styles.tocDots} />
-            <Text>25</Text>
+            <Text>Last</Text>
           </View>
         </View>
         <Text style={styles.pageNumber}>2</Text>
       </Page>
 
-      {/* Executive Summary */}
+      {/* Executive Summary + Main Ideas */}
       <Page size="A4" style={styles.page}>
-        <Text style={styles.heading1}>Executive Summary</Text>
+        <Text style={styles.heading1}>Source Article Summary</Text>
         <Text style={styles.body}>
-          This content package contains {summary?.totalPieces || 21}+ platform-optimized pieces derived from your blog article. Each piece focuses on a unique main idea to maximize reach and engagement across channels.
+          This package contains {posts.length} unique LinkedIn posts derived from your blog article. Each post uses a different format and angle to maximize engagement and reach.
         </Text>
 
         <Text style={styles.heading2}>Source Article</Text>
         <Text style={styles.body}>Title: {blogMetadata?.title}</Text>
         <Text style={styles.body}>URL: {blogMetadata?.url}</Text>
-        {blogMetadata?.author && <Text style={styles.body}>Author: {blogMetadata.author}</Text>}
         <Text style={styles.body}>Word Count: {blogMetadata?.wordCount || 'N/A'}</Text>
 
-        <Text style={styles.heading2}>Content Distribution</Text>
-        <View style={styles.listItem}>
-          <Text style={styles.bullet}>-</Text>
-          <Text style={styles.listText}>LinkedIn: 5 posts + 1 Pulse article</Text>
-        </View>
-        <View style={styles.listItem}>
-          <Text style={styles.bullet}>-</Text>
-          <Text style={styles.listText}>Instagram: 2 posts with design briefs</Text>
-        </View>
-        <View style={styles.listItem}>
-          <Text style={styles.bullet}>-</Text>
-          <Text style={styles.listText}>Twitter/X: 3 threaded discussions</Text>
-        </View>
-        <View style={styles.listItem}>
-          <Text style={styles.bullet}>-</Text>
-          <Text style={styles.listText}>Facebook: 4 community posts</Text>
-        </View>
-        <View style={styles.listItem}>
-          <Text style={styles.bullet}>-</Text>
-          <Text style={styles.listText}>Plus: Infographic outline, Substack newsletter, YouTube Shorts script</Text>
-        </View>
+        <Text style={styles.heading1}>Key Ideas Extracted</Text>
+        {mainIdeas?.slice(0, 6).map((idea, i) => (
+          <View key={i} style={styles.listItem}>
+            <Text style={styles.bullet}>{idea.id}.</Text>
+            <Text style={styles.listText}>
+              {idea.title}: {idea.description?.substring(0, 100)}...
+            </Text>
+          </View>
+        ))}
         <Text style={styles.pageNumber}>3</Text>
       </Page>
 
-      {/* Main Ideas */}
+      {/* Posts Overview */}
       <Page size="A4" style={styles.page}>
-        <Text style={styles.heading1}>Main Ideas Extracted</Text>
+        <Text style={styles.heading1}>Posts Overview</Text>
         <Text style={styles.body}>
-          We extracted {mainIdeas?.length || 6} distinct main ideas from your article. Each content piece focuses on a different idea to ensure variety and prevent repetition.
+          Quick reference of all {posts.length} posts with their formats:
         </Text>
 
-        {mainIdeas?.map((idea, i) => (
-          <View key={i} style={styles.contentBlock}>
-            <Text style={styles.heading3}>#{idea.id}: {idea.title}</Text>
-            <Text style={styles.body}>{idea.description}</Text>
-          </View>
-        ))}
-        <Text style={styles.pageNumber}>4</Text>
-      </Page>
-
-      {/* LinkedIn Posts */}
-      <Page size="A4" style={styles.page}>
-        <Text style={styles.heading1}>LinkedIn Content</Text>
-        <Text style={styles.body}>
-          5 professional posts designed for maximum engagement on LinkedIn. Each uses a different format and focuses on a unique main idea.
-        </Text>
-
-        {content?.linkedin?.slice(0, 3).map((post, i) => (
-          <View key={i} style={styles.contentBlock}>
-            <View style={styles.platformBadge}>
-              <Text style={styles.badgeText}>LinkedIn Post {i + 1}</Text>
-            </View>
-            <Text style={styles.meta}>Format: {post.format} | Words: {post.wordCount} | Main Idea: #{post.mainIdeaId}</Text>
-            <Text style={styles.contentText}>{post.content}</Text>
-          </View>
-        ))}
-        <Text style={styles.pageNumber}>5</Text>
-      </Page>
-
-      <Page size="A4" style={styles.page}>
-        <Text style={styles.heading2}>LinkedIn Posts (continued)</Text>
-        {content?.linkedin?.slice(3).map((post, i) => (
-          <View key={i} style={styles.contentBlock}>
-            <View style={styles.platformBadge}>
-              <Text style={styles.badgeText}>LinkedIn Post {i + 4}</Text>
-            </View>
-            <Text style={styles.meta}>Format: {post.format} | Words: {post.wordCount}</Text>
-            <Text style={styles.contentText}>{post.content}</Text>
-          </View>
-        ))}
-        <Text style={styles.pageNumber}>6</Text>
-      </Page>
-
-      {/* Instagram Posts */}
-      <Page size="A4" style={styles.page}>
-        <Text style={styles.heading1}>Instagram Content</Text>
-        <Text style={styles.body}>
-          2 visually-focused posts with detailed design briefs for your creative team.
-        </Text>
-
-        {content?.instagram?.map((post, i) => (
-          <View key={i} style={styles.contentBlock}>
-            <View style={styles.platformBadge}>
-              <Text style={styles.badgeText}>Instagram Post {i + 1}</Text>
-            </View>
-            <Text style={styles.meta}>Style: {post.style}</Text>
-
-            <Text style={styles.heading3}>Caption:</Text>
-            <Text style={styles.contentText}>{post.caption}</Text>
-
-            <Text style={styles.heading3}>Design Brief:</Text>
-            <Text style={styles.bodySmall}>Visual Concept: {post.designBrief?.visualConcept}</Text>
-            <Text style={styles.bodySmall}>Color Palette: {Array.isArray(post.designBrief?.colorPalette) ? post.designBrief.colorPalette.join(', ') : 'Blue, White, Gray'}</Text>
-            <Text style={styles.bodySmall}>Typography: {post.designBrief?.typography}</Text>
-            <Text style={styles.bodySmall}>Layout: {post.designBrief?.layout}</Text>
-          </View>
-        ))}
-        <Text style={styles.pageNumber}>8</Text>
-      </Page>
-
-      {/* Twitter Threads */}
-      <Page size="A4" style={styles.page}>
-        <Text style={styles.heading1}>Twitter/X Threads</Text>
-        <Text style={styles.body}>
-          3 threaded discussions designed for engagement and shareability.
-        </Text>
-
-        {content?.twitter?.map((thread, i) => (
-          <View key={i} style={styles.contentBlock}>
-            <View style={styles.platformBadge}>
-              <Text style={styles.badgeText}>Thread {i + 1}: {thread.style}</Text>
-            </View>
-
-            {thread.tweets?.map((tweet, j) => (
-              <View key={j} style={styles.scheduleItem}>
-                <Text style={styles.meta}>Tweet {tweet.tweetNumber}</Text>
-                <Text style={styles.body}>{tweet.text}</Text>
-              </View>
-            ))}
-          </View>
-        ))}
-        <Text style={styles.pageNumber}>10</Text>
-      </Page>
-
-      {/* Facebook Posts */}
-      <Page size="A4" style={styles.page}>
-        <Text style={styles.heading1}>Facebook Content</Text>
-        <Text style={styles.body}>
-          4 community-focused posts designed to spark discussion and engagement.
-        </Text>
-
-        {content?.facebook?.map((post, i) => (
-          <View key={i} style={styles.contentBlock}>
-            <View style={styles.platformBadge}>
-              <Text style={styles.badgeText}>Facebook Post {i + 1}</Text>
-            </View>
-            <Text style={styles.meta}>Style: {post.style}</Text>
-            <Text style={styles.contentText}>{post.content}</Text>
-          </View>
-        ))}
-        <Text style={styles.pageNumber}>13</Text>
-      </Page>
-
-      {/* Infographic */}
-      <Page size="A4" style={styles.page}>
-        <Text style={styles.heading1}>Infographic Outline</Text>
-        <Text style={styles.body}>
-          A detailed outline for creating a shareable infographic based on your content.
-        </Text>
-
-        <View style={styles.contentBlock}>
-          <Text style={styles.heading2}>{content?.infographic?.title}</Text>
-          <Text style={styles.body}>{content?.infographic?.subtitle}</Text>
-
-          <Text style={styles.heading3}>Key Data Points:</Text>
-          {content?.infographic?.dataPoints?.map((point, i) => (
-            <View key={i} style={styles.listItem}>
-              <Text style={styles.bullet}>{i + 1}.</Text>
-              <Text style={styles.listText}>
-                <Text style={{ fontWeight: 'bold' }}>{point.point}</Text>: {point.description} (Emphasis: {point.emphasis})
+        <View style={styles.postGrid}>
+          {posts.map((post, i) => (
+            <View key={i} style={styles.postMini}>
+              <Text style={styles.postMiniTitle}>
+                Post {post.postNumber || i + 1}: {post.format?.replace(/-/g, ' ')}
+              </Text>
+              <Text style={styles.postMiniMeta}>
+                {post.wordCount || 0} words
               </Text>
             </View>
           ))}
-
-          <Text style={styles.heading3}>Design Specifications:</Text>
-          <Text style={styles.body}>Dimensions: {content?.infographic?.dimensions}</Text>
-          <Text style={styles.body}>Icon Style: {content?.infographic?.iconStyle}</Text>
-          <Text style={styles.body}>Visual Hierarchy: {content?.infographic?.visualHierarchy}</Text>
         </View>
-        <Text style={styles.pageNumber}>16</Text>
+        <Text style={styles.pageNumber}>4</Text>
       </Page>
 
-      {/* LinkedIn Pulse */}
-      <Page size="A4" style={styles.page}>
-        <Text style={styles.heading1}>LinkedIn Pulse Article</Text>
-        <Text style={styles.meta}>Word Count: {content?.linkedinPulse?.wordCount}</Text>
-        <Text style={styles.contentText}>{content?.linkedinPulse?.content}</Text>
-        <Text style={styles.pageNumber}>17</Text>
-      </Page>
+      {/* LinkedIn Posts Pages */}
+      {postPages.map((pagePosts, pageIndex) => (
+        <Page key={pageIndex} size="A4" style={styles.page}>
+          <Text style={styles.heading1}>
+            LinkedIn Posts {pageIndex * postsPerPage + 1}-{Math.min((pageIndex + 1) * postsPerPage, posts.length)}
+          </Text>
 
-      {/* Substack */}
-      <Page size="A4" style={styles.page}>
-        <Text style={styles.heading1}>Substack Newsletter</Text>
-        <Text style={styles.meta}>Word Count: {content?.substack?.wordCount}</Text>
-        <Text style={styles.contentText}>{content?.substack?.content}</Text>
-        <Text style={styles.pageNumber}>20</Text>
-      </Page>
-
-      {/* YouTube Shorts */}
-      <Page size="A4" style={styles.page}>
-        <Text style={styles.heading1}>YouTube Shorts Script</Text>
-        <Text style={styles.body}>
-          A 60-second video script with timing, spoken text, and visual cues.
-        </Text>
-
-        {content?.youtubeShorts?.segments?.map((segment, i) => (
-          <View key={i} style={styles.contentBlock}>
-            <View style={styles.platformBadge}>
-              <Text style={styles.badgeText}>{segment.time}</Text>
-            </View>
-            <Text style={styles.heading3}>Spoken Text:</Text>
-            <Text style={styles.body}>{segment.spokenText}</Text>
-            <Text style={styles.heading3}>On-Screen Text:</Text>
-            <Text style={styles.body}>{segment.onScreenText}</Text>
-            <Text style={styles.heading3}>Visual Cue:</Text>
-            <Text style={styles.bodySmall}>{segment.visualCue}</Text>
-          </View>
-        ))}
-        <Text style={styles.pageNumber}>23</Text>
-      </Page>
-
-      {/* Posting Schedule */}
-      <Page size="A4" style={styles.page}>
-        <Text style={styles.heading1}>4-Week Posting Schedule</Text>
-        <Text style={styles.body}>
-          A strategic content calendar to maximize reach and engagement across all platforms.
-        </Text>
-
-        {schedule?.schedule?.map((week, i) => (
-          <View key={i} style={styles.weekBlock}>
-            <Text style={styles.heading2}>Week {week.weekNumber}: {week.theme}</Text>
-            <Text style={styles.meta}>{week.focus}</Text>
-
-            {week.posts?.map((post, j) => (
-              <View key={j} style={styles.scheduleItem}>
-                <Text style={styles.body}>
-                  {post.day} @ {post.time} - {post.platform}: {post.type}
-                </Text>
-                {post.note && <Text style={styles.note}>{post.note}</Text>}
+          {pagePosts.map((post, i) => (
+            <View key={i} style={styles.contentBlock}>
+              <View style={styles.platformBadge}>
+                <Text style={styles.badgeText}>Post {post.postNumber || pageIndex * postsPerPage + i + 1}</Text>
               </View>
-            ))}
-          </View>
-        ))}
-        <Text style={styles.pageNumber}>25</Text>
-      </Page>
+              <View style={styles.formatBadge}>
+                <Text style={styles.formatBadgeText}>{post.format?.replace(/-/g, ' ') || 'Post'}</Text>
+              </View>
+              <Text style={styles.meta}>Words: {post.wordCount || 0} | Based on: {post.ideaUsed || 'Key Insight'}</Text>
+              <Text style={styles.contentText}>{post.content}</Text>
+            </View>
+          ))}
+          <Text style={styles.pageNumber}>{5 + pageIndex}</Text>
+        </Page>
+      ))}
 
-      {/* Best Practices */}
+      {/* Posting Schedule Tips */}
       <Page size="A4" style={styles.page}>
-        <Text style={styles.heading1}>Platform Best Practices</Text>
+        <Text style={styles.heading1}>Posting Schedule Tips</Text>
+        <Text style={styles.body}>
+          With {posts.length} posts, you have enough content for approximately one month of LinkedIn activity. Here are some tips for maximizing engagement:
+        </Text>
 
-        {schedule?.bestPractices?.map((practice, i) => (
-          <View key={i} style={styles.contentBlock}>
-            <Text style={styles.heading3}>{practice.platform}</Text>
-            <Text style={styles.body}>Best Timing: {practice.timing}</Text>
-            <Text style={styles.body}>Recommended Frequency: {practice.frequency}</Text>
-            <Text style={styles.note}>Tip: {practice.tip}</Text>
-          </View>
-        ))}
+        <Text style={styles.heading2}>Recommended Schedule</Text>
+        <View style={styles.listItem}>
+          <Text style={styles.bullet}>-</Text>
+          <Text style={styles.listText}>Post 1x per day on weekdays (Mon-Fri)</Text>
+        </View>
+        <View style={styles.listItem}>
+          <Text style={styles.bullet}>-</Text>
+          <Text style={styles.listText}>Best times: 7-8am, 12pm, or 5-6pm in your audience timezone</Text>
+        </View>
+        <View style={styles.listItem}>
+          <Text style={styles.bullet}>-</Text>
+          <Text style={styles.listText}>Avoid weekends unless your audience is B2C</Text>
+        </View>
 
-        <Text style={styles.heading2}>General Tips</Text>
+        <Text style={styles.heading2}>Post Format Rotation</Text>
+        <Text style={styles.body}>
+          We have included 21 different formats to keep your content fresh. Consider rotating through:
+        </Text>
         <View style={styles.listItem}>
           <Text style={styles.bullet}>-</Text>
-          <Text style={styles.listText}>Always personalize content with your unique insights before posting</Text>
+          <Text style={styles.listText}>Monday: Story-based posts to start the week</Text>
         </View>
         <View style={styles.listItem}>
           <Text style={styles.bullet}>-</Text>
-          <Text style={styles.listText}>Engage with comments within the first hour of posting</Text>
+          <Text style={styles.listText}>Tuesday: Data insights or trend analysis</Text>
         </View>
         <View style={styles.listItem}>
           <Text style={styles.bullet}>-</Text>
-          <Text style={styles.listText}>Test different posting times to find what works for your audience</Text>
+          <Text style={styles.listText}>Wednesday: How-to or actionable tips</Text>
         </View>
         <View style={styles.listItem}>
           <Text style={styles.bullet}>-</Text>
-          <Text style={styles.listText}>Repurpose top-performing content across additional platforms</Text>
+          <Text style={styles.listText}>Thursday: Contrarian or myth-buster posts</Text>
         </View>
-        <Text style={styles.pageNumber}>27</Text>
+        <View style={styles.listItem}>
+          <Text style={styles.bullet}>-</Text>
+          <Text style={styles.listText}>Friday: Lighter content - questions or quick tips</Text>
+        </View>
+
+        <Text style={styles.heading2}>Engagement Tips</Text>
+        <View style={styles.listItem}>
+          <Text style={styles.bullet}>-</Text>
+          <Text style={styles.listText}>Respond to all comments within 1-2 hours of posting</Text>
+        </View>
+        <View style={styles.listItem}>
+          <Text style={styles.bullet}>-</Text>
+          <Text style={styles.listText}>Add your own thoughts and personalize before posting</Text>
+        </View>
+        <View style={styles.listItem}>
+          <Text style={styles.bullet}>-</Text>
+          <Text style={styles.listText}>Tag relevant connections when appropriate</Text>
+        </View>
+        <View style={styles.listItem}>
+          <Text style={styles.bullet}>-</Text>
+          <Text style={styles.listText}>Repost top performers after 2-3 weeks with fresh intro</Text>
+        </View>
+
+        <Text style={styles.pageNumber}>{5 + postPages.length}</Text>
       </Page>
     </Document>
   );

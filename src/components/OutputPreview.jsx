@@ -1,11 +1,23 @@
 'use client';
 
 import { useState } from 'react';
-import { Download, FileText, AlertTriangle, CheckCircle2, Package } from 'lucide-react';
+import { Download, Copy, Check, AlertTriangle, CheckCircle2, Package, ChevronDown, ChevronUp } from 'lucide-react';
 import ProgressStages from './ProgressStages';
 
 export default function OutputPreview({ status, progress, currentStage, data, error }) {
   const [isDownloading, setIsDownloading] = useState(false);
+  const [copiedIndex, setCopiedIndex] = useState(null);
+  const [expandedPost, setExpandedPost] = useState(null);
+
+  const copyToClipboard = async (content, index) => {
+    try {
+      await navigator.clipboard.writeText(content);
+      setCopiedIndex(index);
+      setTimeout(() => setCopiedIndex(null), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
 
   const downloadPDF = async () => {
     setIsDownloading(true);
@@ -24,7 +36,7 @@ export default function OutputPreview({ status, progress, currentStage, data, er
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `content-package-${Date.now()}.pdf`;
+      a.download = `linkedin-posts-${Date.now()}.pdf`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -37,17 +49,30 @@ export default function OutputPreview({ status, progress, currentStage, data, er
     }
   };
 
+  const downloadJSON = () => {
+    const jsonStr = JSON.stringify(data, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `linkedin-posts-${Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  };
+
   // Idle State
   if (status === 'idle') {
     return (
       <div className="bg-white rounded-2xl p-8 sm:p-12 shadow-xl border border-gray-100 flex items-center justify-center min-h-[500px]">
         <div className="text-center space-y-4">
-          <div className="w-20 h-20 mx-auto bg-gray-100 rounded-full flex items-center justify-center">
-            <Package className="w-10 h-10 text-gray-400" />
+          <div className="w-20 h-20 mx-auto bg-blue-100 rounded-full flex items-center justify-center">
+            <Package className="w-10 h-10 text-blue-500" />
           </div>
           <div>
-            <p className="text-gray-500 text-lg">Your content package will appear here</p>
-            <p className="text-gray-400 text-sm mt-1">Enter a blog URL and click generate to get started</p>
+            <p className="text-gray-500 text-lg">Your LinkedIn posts will appear here</p>
+            <p className="text-gray-400 text-sm mt-1">Enter a blog URL and click generate to create 21 posts</p>
           </div>
         </div>
       </div>
@@ -82,10 +107,6 @@ export default function OutputPreview({ status, progress, currentStage, data, er
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-red-400 mt-0.5">-</span>
-                Ensure your file is under 10MB
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-red-400 mt-0.5">-</span>
                 Try a different blog URL
               </li>
               <li className="flex items-start gap-2">
@@ -99,88 +120,124 @@ export default function OutputPreview({ status, progress, currentStage, data, er
     );
   }
 
-  // Complete State
+  // Complete State - Show LinkedIn Posts
   if (status === 'complete') {
+    const posts = data?.linkedInPosts || [];
+
     return (
-      <div className="bg-white rounded-2xl p-8 sm:p-12 shadow-xl border border-gray-100 flex items-center justify-center min-h-[500px]">
-        <div className="text-center space-y-6 max-w-md w-full">
-          {/* Success animation */}
-          <div className="relative">
-            <div className="w-20 h-20 mx-auto bg-green-100 rounded-full flex items-center justify-center">
-              <CheckCircle2 className="w-10 h-10 text-green-600" />
-            </div>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-20 h-20 rounded-full border-4 border-green-400 animate-ping opacity-20" />
-            </div>
+      <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white">
+          <div className="flex items-center gap-3 mb-2">
+            <CheckCircle2 className="w-6 h-6" />
+            <h3 className="text-xl font-bold">LinkedIn Posts Ready!</h3>
           </div>
+          <p className="text-blue-100 text-sm">
+            {posts.length} posts generated from: {data?.blogMetadata?.title?.substring(0, 50)}...
+          </p>
+        </div>
 
-          <div>
-            <h3 className="text-2xl font-bold text-gray-900">Package Ready!</h3>
-            <p className="text-gray-500 mt-1">Your content has been generated successfully</p>
-          </div>
-
-          {/* Preview card */}
-          <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6 space-y-4">
-            <div className="w-24 h-32 mx-auto bg-white rounded-lg shadow-md flex items-center justify-center border border-gray-200">
-              <FileText className="w-12 h-12 text-red-600" />
-            </div>
-
-            <div>
-              <p className="font-semibold text-gray-900">Content Repurposing Package</p>
-              <p className="text-sm text-gray-600 mt-1">
-                {data?.summary?.totalPieces || 21}+ pieces - {data?.summary?.pages || 35} pages
-              </p>
-            </div>
-
-            {/* Content summary */}
-            <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
-              <div className="bg-white rounded-lg p-2">
-                <span className="font-medium">LinkedIn</span>: {data?.content?.linkedin?.length || 5} posts
-              </div>
-              <div className="bg-white rounded-lg p-2">
-                <span className="font-medium">Instagram</span>: {data?.content?.instagram?.length || 2} posts
-              </div>
-              <div className="bg-white rounded-lg p-2">
-                <span className="font-medium">Twitter</span>: {data?.content?.twitter?.length || 3} threads
-              </div>
-              <div className="bg-white rounded-lg p-2">
-                <span className="font-medium">Facebook</span>: {data?.content?.facebook?.length || 4} posts
-              </div>
-            </div>
-          </div>
-
-          {/* Download button */}
+        {/* Action Buttons */}
+        <div className="p-4 bg-gray-50 border-b flex gap-3 flex-wrap">
           <button
             onClick={downloadPDF}
             disabled={isDownloading}
-            className={`w-full py-4 rounded-xl font-semibold text-white text-lg
-              transition-all duration-200 shadow-lg flex items-center justify-center gap-2
-              ${isDownloading
-                ? 'bg-gray-400 cursor-not-allowed'
-                : 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 hover:shadow-xl hover:-translate-y-0.5'}
-            `}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
           >
-            {isDownloading ? (
-              <>
-                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-                Preparing PDF...
-              </>
-            ) : (
-              <>
-                <Download className="w-5 h-5" />
-                Download PDF Package
-              </>
-            )}
+            <Download className="w-4 h-4" />
+            {isDownloading ? 'Preparing...' : 'Download PDF'}
           </button>
+          <button
+            onClick={downloadJSON}
+            className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+          >
+            <Download className="w-4 h-4" />
+            Download JSON
+          </button>
+        </div>
 
-          {data?.blogMetadata?.title && (
-            <p className="text-xs text-gray-400 mt-2">
-              Based on: {data.blogMetadata.title.substring(0, 50)}...
-            </p>
-          )}
+        {/* Posts Grid */}
+        <div className="p-4 max-h-[600px] overflow-y-auto">
+          <div className="space-y-4">
+            {posts.map((post, index) => (
+              <div
+                key={post.postNumber || index}
+                className="border border-gray-200 rounded-xl overflow-hidden hover:border-blue-300 transition-colors"
+              >
+                {/* Post Header */}
+                <div
+                  className="flex items-center justify-between p-4 bg-gray-50 cursor-pointer"
+                  onClick={() => setExpandedPost(expandedPost === index ? null : index)}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="flex items-center justify-center w-8 h-8 bg-blue-600 text-white rounded-full text-sm font-bold">
+                      {post.postNumber || index + 1}
+                    </span>
+                    <div>
+                      <p className="font-medium text-gray-900 capitalize">{post.format?.replace(/-/g, ' ') || 'Post'}</p>
+                      <p className="text-xs text-gray-500">{post.wordCount || 0} words</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        copyToClipboard(post.content, index);
+                      }}
+                      className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      title="Copy to clipboard"
+                    >
+                      {copiedIndex === index ? (
+                        <Check className="w-4 h-4 text-green-500" />
+                      ) : (
+                        <Copy className="w-4 h-4" />
+                      )}
+                    </button>
+                    {expandedPost === index ? (
+                      <ChevronUp className="w-5 h-5 text-gray-400" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-gray-400" />
+                    )}
+                  </div>
+                </div>
+
+                {/* Post Content (Expanded) */}
+                {expandedPost === index && (
+                  <div className="p-4 border-t border-gray-200">
+                    <div className="prose prose-sm max-w-none">
+                      <pre className="whitespace-pre-wrap font-sans text-gray-700 text-sm leading-relaxed bg-white p-0 m-0">
+                        {post.content}
+                      </pre>
+                    </div>
+                    {post.ideaUsed && (
+                      <div className="mt-3 pt-3 border-t border-gray-100">
+                        <p className="text-xs text-gray-500">
+                          <span className="font-medium">Based on:</span> {post.ideaUsed}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Preview (Collapsed) */}
+                {expandedPost !== index && (
+                  <div className="px-4 pb-4">
+                    <p className="text-sm text-gray-600 line-clamp-2">
+                      {post.content?.substring(0, 150)}...
+                    </p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Summary Footer */}
+        <div className="p-4 bg-gray-50 border-t">
+          <div className="flex items-center justify-between text-sm text-gray-600">
+            <span>{posts.length} of 21 posts generated</span>
+            <span>Ready to schedule for the next month</span>
+          </div>
         </div>
       </div>
     );
