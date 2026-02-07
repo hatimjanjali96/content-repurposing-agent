@@ -389,7 +389,7 @@ export function PDFDocument({ data }) {
 
         <Text style={styles.heading2}>Post Format Rotation</Text>
         <Text style={styles.body}>
-          We have included 21 different formats to keep your content fresh. Consider rotating through:
+          We have included 14 different formats to keep your content fresh. Consider rotating through:
         </Text>
         <View style={styles.listItem}>
           <Text style={styles.bullet}>-</Text>

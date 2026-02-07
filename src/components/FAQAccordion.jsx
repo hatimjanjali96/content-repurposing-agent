@@ -9,11 +9,11 @@ export default function FAQAccordion() {
   const faqs = [
     {
       question: "How long does it take to generate content?",
-      answer: "Typically 60-90 seconds. The AI analyzes your blog article, extracts 6-8 main ideas, and creates 21+ unique content pieces optimized for each platform. The speed depends on the article length and current server load."
+      answer: "Typically 60-90 seconds. The AI analyzes your blog article, extracts 6-8 main ideas, and creates 14+ unique content pieces optimized for each platform. The speed depends on the article length and current server load."
     },
     {
       question: "What platforms are supported?",
-      answer: "We generate content for LinkedIn (5 posts + 1 Pulse article), Instagram (2 posts with design briefs), Twitter/X (3 threaded discussions), Facebook (4 posts), plus YouTube Shorts scripts, Substack newsletters, and infographic outlines. That's 8 platforms with 21+ total content pieces."
+      answer: "We generate 14 unique LinkedIn posts with different formats and angles - from storytelling and data insights to how-to guides and myth-busters. Each post is optimized for engagement with hashtags and discussion questions."
     },
     {
       question: "Do I need to provide brand guidelines?",

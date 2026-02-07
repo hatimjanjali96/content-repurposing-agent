@@ -78,13 +78,13 @@ export default function Home() {
       const mainIdeas: MainIdea[] = ideasResult.data.mainIdeas;
       setProgress(25);
 
-      // Step 3: Generate 21 LinkedIn posts in 3 batches of 7
+      // Step 3: Generate 14 LinkedIn posts in 2 batches of 7
       const allLinkedInPosts: LinkedInPost[] = [];
       const brandVoice = 'Professional, engaging, thought-leadership';
 
-      for (let batch = 0; batch < 3; batch++) {
+      for (let batch = 0; batch < 2; batch++) {
         const batchStart = batch * 7 + 1;
-        const batchEnd = Math.min((batch + 1) * 7, 21);
+        const batchEnd = Math.min((batch + 1) * 7, 14);
         setCurrentStage(`Generating LinkedIn posts ${batchStart}-${batchEnd}...`);
         setProgress(25 + Math.round((batch / 3) * 60));
 
@@ -127,7 +127,7 @@ export default function Home() {
         linkedInPosts: allLinkedInPosts,
         summary: {
           totalPosts: allLinkedInPosts.length,
-          targetPosts: 21,
+          targetPosts: 14,
           generatedAt: new Date().toISOString()
         }
       };
@@ -154,10 +154,10 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-              Generate 21 LinkedIn Posts
+              Generate 14 LinkedIn Posts
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Enter your blog URL and we&apos;ll create 21 unique LinkedIn posts with different formats and angles - ready to schedule for a month of content.
+              Enter your blog URL and we&apos;ll create 14 unique LinkedIn posts with different formats and angles - ready to schedule for weeks of content.
             </p>
           </div>
 

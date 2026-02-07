@@ -72,7 +72,7 @@ export default function OutputPreview({ status, progress, currentStage, data, er
           </div>
           <div>
             <p className="text-gray-500 text-lg">Your LinkedIn posts will appear here</p>
-            <p className="text-gray-400 text-sm mt-1">Enter a blog URL and click generate to create 21 posts</p>
+            <p className="text-gray-400 text-sm mt-1">Enter a blog URL and click generate to create 14 posts</p>
           </div>
         </div>
       </div>
@@ -235,7 +235,7 @@ export default function OutputPreview({ status, progress, currentStage, data, er
         {/* Summary Footer */}
         <div className="p-4 bg-gray-50 border-t">
           <div className="flex items-center justify-between text-sm text-gray-600">
-            <span>{posts.length} of 21 posts generated</span>
+            <span>{posts.length} of 14 posts generated</span>
             <span>Ready to schedule for the next month</span>
           </div>
         </div>

@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Social Marketing Content Team | Turn 1 Blog Into 21+ Posts",
+  title: "Social Marketing Content Team | Turn 1 Blog Into 14+ Posts",
   description:
-    "Your AI-powered social marketing content team. Transform any blog article into 21+ platform-optimized social media posts, threads, and newsletters in under 2 minutes. 100% free.",
+    "Your AI-powered social marketing content team. Transform any blog article into 14+ platform-optimized social media posts, threads, and newsletters in under 2 minutes. 100% free.",
   keywords: [
     "social marketing",
     "AI content generator",
@@ -18,9 +18,9 @@ export const metadata: Metadata = {
   authors: [{ name: "Hatim Janjali" }],
   creator: "Hatim Janjali",
   openGraph: {
-    title: "Social Marketing Content Team | Turn 1 Blog Into 21+ Posts",
+    title: "Social Marketing Content Team | Turn 1 Blog Into 14+ Posts",
     description:
-      "Your AI-powered social marketing content team. Transform any blog into 21+ platform-ready posts in under 2 minutes.",
+      "Your AI-powered social marketing content team. Transform any blog into 14+ platform-ready posts in under 2 minutes.",
     type: "website",
     locale: "en_US",
   },
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Social Marketing Content Team",
     description:
-      "Turn 1 blog into 21+ platform-ready posts with AI. Free tool for marketers.",
+      "Turn 1 blog into 14+ platform-ready posts with AI. Free tool for marketers.",
   },
   robots: {
     index: true,

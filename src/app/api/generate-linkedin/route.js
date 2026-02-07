@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 export const runtime = 'edge';
 
-// 21 different post formats/angles for variety
+// 14 different post formats/angles for variety
 const POST_FORMATS = [
   { type: 'story', instruction: 'Tell a specific story or scenario. Start with "I was..." or "Last week..." or a vivid scene.' },
   { type: 'data-insight', instruction: 'Lead with a surprising statistic or data point. Explain what it means.' },
@@ -43,7 +43,7 @@ export async function POST(request) {
     // Determine which posts to generate based on batch (0, 1, or 2)
     const batchNum = batch || 0;
     const startIdx = batchNum * 7;
-    const endIdx = Math.min(startIdx + 7, 21);
+    const endIdx = Math.min(startIdx + 7, 14);
     const formatsToUse = POST_FORMATS.slice(startIdx, endIdx);
 
     // Build ideas string
